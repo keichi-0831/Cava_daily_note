@@ -16,6 +16,7 @@
             --accent-secondary: #FFB6A3;
             --text-primary: #8C7B73;
             --text-secondary: #B4A29B;
+            --text-primary-rgb: 140, 123, 115;
             --text-secondary-rgb: 180, 162, 155;
             --text-light: #FFFFFF;
             --error-bg: #FADADD;
@@ -40,6 +41,7 @@
             --accent-secondary: #87C4F4;
             --text-primary: #5A7C94;
             --text-secondary: #9AB7CC;
+            --text-primary-rgb: 90, 124, 148;
             --text-secondary-rgb: 154, 183, 204;
             --border-color: #E0F0FF;
             --shadow-light: rgba(90, 124, 148, 0.1);
@@ -54,6 +56,7 @@
             --accent-secondary: #96CDBC;
             --text-primary: #5E8071;
             --text-secondary: #9EBAAF;
+            --text-primary-rgb: 94, 128, 113;
             --text-secondary-rgb: 158, 186, 175;
             --border-color: #E5F1E9;
             --shadow-light: rgba(94, 128, 113, 0.1);
@@ -68,6 +71,7 @@
             --accent-secondary: #C0A9E0;
             --text-primary: #7C6B8F;
             --text-secondary: #A99CB8;
+            --text-primary-rgb: 124, 107, 143;
             --text-secondary-rgb: 169, 156, 184;
             --border-color: #F0EBFA;
             --shadow-light: rgba(124, 107, 143, 0.1);
@@ -82,6 +86,7 @@
             --accent-secondary: #F4AAB6;
             --text-primary: #9A6A74;
             --text-secondary: #C7A5AD;
+            --text-primary-rgb: 154, 106, 116;
             --text-secondary-rgb: 199, 165, 173;
             --border-color: #FAEBF0;
             --shadow-light: rgba(154, 106, 116, 0.1);
@@ -96,6 +101,7 @@
             --accent-secondary: #B0B0B0;
             --text-primary: #616161;
             --text-secondary: #9E9E9E;
+            --text-primary-rgb: 97, 97, 97;
             --text-secondary-rgb: 158, 158, 158;
             --border-color: #EEEEEE;
             --shadow-light: rgba(97, 97, 97, 0.1);
@@ -176,10 +182,12 @@
         body[data-theme="pink"] .header { background-color: rgba(255, 240, 245, 0.8); }
         body[data-theme="gray"] .header { background-color: rgba(245, 245, 245, 0.8); }
 
-        .header-title { position: absolute; left: 50%; transform: translateX(-50%); }
         .header .action-btn { font-size: 24px; cursor: pointer; width: 30px; height: 30px; text-align: center; color: var(--accent-primary); display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s; }
         .header .action-btn:active { background-color: var(--border-color); }
         .header .back-btn { font-size: 22px; font-weight: bold; }
+        .header .left-action { flex: 1 1 0; display: flex; justify-content: flex-start; }
+        .header .right-action { flex: 1 1 0; display: flex; justify-content: flex-end; }
+        .header .center-title { flex: 2 1 0; text-align: center; }
 
         /* Bottom Navigation */
         #bottom-nav {
@@ -406,23 +414,27 @@
         }
         .selection-mode-active #chat-messages { padding-left: 40px; padding-right: 40px; }
 
-        /* Transaction & Schedule Message Cards */
-        .message-bubble.transaction .content, .message-bubble.schedule .content { padding: 0; background: transparent; box-shadow: none; }
-        .transaction-card, .schedule-card { width: 220px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 12px var(--shadow-medium); background: var(--bg-secondary); }
-        .transaction-header, .schedule-header { padding: 10px 15px; display: flex; align-items: center; gap: 10px; color: var(--text-light); }
+        /* Transaction, Schedule & Summary Message Cards */
+        .message-bubble.transaction .content, .message-bubble.schedule .content,
+        .message-bubble.ledger_summary .content, .message-bubble.schedule_summary .content { padding: 0; background: transparent; box-shadow: none; }
+        .transaction-card, .schedule-card, .summary-card { width: 220px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 12px var(--shadow-medium); background: var(--bg-secondary); }
+        .transaction-header, .schedule-header, .summary-header { padding: 10px 15px; display: flex; align-items: center; gap: 10px; color: var(--text-light); }
         .transaction-header.expense { background-color: var(--expense-color); }
         .transaction-header.income { background-color: var(--income-color); }
         .schedule-header { background-color: var(--accent-secondary); }
-        .transaction-header .icon, .schedule-header .icon { font-size: 24px; }
-        .transaction-header .category-name, .schedule-header .type-name { font-size: 16px; font-weight: bold; }
-        .transaction-body, .schedule-body { padding: 15px; }
+        .summary-header { background-color: var(--accent-primary); }
+        .transaction-header .icon, .schedule-header .icon, .summary-header .icon { font-size: 24px; }
+        .transaction-header .category-name, .schedule-header .type-name, .summary-header .type-name { font-size: 16px; font-weight: bold; }
+        .transaction-body, .schedule-body, .summary-body { padding: 15px; text-align: center; }
         .transaction-amount { font-size: 28px; font-weight: bold; color: var(--text-primary); margin-bottom: 8px; }
         .transaction-amount .currency-label { font-size: 0.5em; }
         .transaction-remark { font-size: 14px; color: var(--text-secondary); border-top: 1px dashed var(--border-color); padding-top: 8px; word-break: break-all; position: relative; }
         .transaction-remark:before { content: '📝 '; }
         .schedule-title { font-size: 18px; font-weight: bold; color: var(--text-primary); margin-bottom: 8px; }
-        .schedule-importance, .schedule-deadline { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
+        .schedule-importance, .schedule-deadline, .schedule-status { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
+        .schedule-status.completed { color: var(--income-color); font-weight: 500; }
         .schedule-description { font-size: 14px; color: var(--text-secondary); border-top: 1px dashed var(--border-color); padding-top: 8px; word-break: break-all; }
+        .summary-body .text { font-size: 14px; color: var(--text-secondary); }
 
         /* Inline Edit Styles */
         .inline-edit-container {
@@ -764,9 +776,43 @@
         .empty-state { text-align: center; padding: 20px; color: var(--text-secondary); }
 
         /* Ledger Page */
-        #ledger-screen .page-content { flex-grow: 1; overflow-y: auto; padding: 15px; }
+        #ledger-screen .page-content { flex-grow: 1; overflow: hidden; padding: 0; }
         .ledger-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 0 15px 15px; border-bottom: 1px solid var(--border-color); }
         .ledger-controls select { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; }
+        #toggle-ledger-view-btn { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 18px; line-height: 1; cursor: pointer; }
+
+        #ledger-view-wrapper { display: flex; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        #ledger-list-view, #ledger-chart-view { width: 100%; height: 100%; overflow-y: auto; flex-shrink: 0; box-sizing: border-box; }
+        #ledger-list-view { padding: 15px; }
+        #ledger-chart-view { padding: 15px; display: flex; flex-direction: column; gap: 20px; position: relative; }
+        
+        .pie-chart-area { width: 100%; }
+        .pie-chart-title { text-align: center; margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .pie-chart-area svg { width: 100%; max-width: 300px; margin: 0 auto; display: block; aspect-ratio: 1; }
+        .pie-chart-area svg path { stroke: var(--bg-main); stroke-width: 2px; cursor: pointer; transition: transform 0.2s ease-out; transform-origin: center center; }
+        .pie-chart-area svg path.active { transform: scale(1.05); }
+
+        #pie-chart-tooltip {
+            position: absolute;
+            display: none;
+            background: rgba(var(--text-primary-rgb, 0, 0, 0), 0.85);
+            color: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+            pointer-events: none;
+            z-index: 10;
+            transform: translate(-50%, -110%);
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        #pie-chart-tooltip strong { font-weight: bold; }
+
+        .pie-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 15px; padding: 10px; margin-top: 5px; }
+        .legend-item { display: flex; align-items: center; font-size: 12px; color: var(--text-primary); }
+        .legend-color-box { width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; }
+        
         #ledger-list { list-style: none; padding: 0; margin: 0; }
         .ledger-item { background-color: var(--bg-secondary); border-radius: 12px; margin-bottom: 12px; padding: 12px 15px; display: flex; align-items: center; box-shadow: 0 2px 5px var(--shadow-light); }
         .ledger-item .icon { font-size: 28px; margin-right: 15px; }
@@ -776,7 +822,7 @@
         .ledger-item .amount { font-size: 18px; font-weight: bold; }
         .ledger-item .amount.expense { color: var(--expense-color); }
         .ledger-item .amount.income { color: var(--income-color); }
-        #ledger-summary { text-align: center; padding: 20px; color: var(--text-secondary); }
+        #ledger-summary { text-align: center; padding: 20px 0 0 0; color: var(--text-secondary); }
 
         /* More/Settings Page */
         #more-screen .page-content { flex-grow: 1; overflow-y: auto; padding: 20px; }
@@ -936,9 +982,9 @@
             <!-- Page 1: Accounting (Chat) -->
             <div id="accounting-screen" class="page active">
                 <div class="header">
-                    <span class="action-btn" id="chat-settings-btn">≡</span>
-                    <span id="chat-header-title" class="header-title">我的记事本</span>
-                    <span></span>
+                    <div class="left-action"><span class="action-btn" id="chat-settings-btn">≡</span></div>
+                    <div class="center-title"><span id="chat-header-title">我的记事本</span></div>
+                    <div class="right-action"></div>
                 </div>
                 <div id="chat-messages"></div>
                 <div id="selection-action-bar">
@@ -961,18 +1007,47 @@
 
             <!-- Page 2: Ledger -->
             <div id="ledger-screen" class="page">
-                 <div class="header"><span class="header-title">我的账本</span></div>
+                 <div class="header">
+                    <div class="left-action"></div>
+                    <div class="center-title"><span>我的账本</span></div>
+                    <div class="right-action"><span class="action-btn" id="forward-ledger-btn">↺</span></div>
+                 </div>
                 <div class="ledger-controls">
                     <select id="ledger-filter-category"><option value="all">所有分类</option></select>
                     <select id="ledger-currency"></select>
                     <select id="ledger-sort"><option value="time_desc">时间倒序</option><option value="time_asc">时间正序</option><option value="amount_desc">金额倒序</option><option value="amount_asc">金额正序</option></select>
+                    <button id="toggle-ledger-view-btn">📊</button>
                 </div>
-                <div class="page-content"><ul id="ledger-list"></ul><div id="ledger-summary"></div></div>
+                <div class="page-content" id="ledger-page-content">
+                    <div id="ledger-view-wrapper">
+                        <div id="ledger-list-view">
+                            <ul id="ledger-list"></ul>
+                            <div id="ledger-summary"></div>
+                        </div>
+                        <div id="ledger-chart-view">
+                            <div id="pie-chart-tooltip"></div>
+                            <div class="pie-chart-area">
+                                <h3 class="pie-chart-title">支出</h3>
+                                <svg id="expense-pie-chart"></svg>
+                                <div class="pie-legend" id="expense-pie-legend"></div>
+                            </div>
+                            <div class="pie-chart-area">
+                                <h3 class="pie-chart-title">收入</h3>
+                                <svg id="income-pie-chart"></svg>
+                                <div class="pie-legend" id="income-pie-legend"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Page 3: Schedule -->
             <div id="schedule-screen" class="page">
-                <div class="header"><span class="header-title">我的日程</span></div>
+                <div class="header">
+                    <div class="left-action"></div>
+                    <div class="center-title"><span>我的日程</span></div>
+                    <div class="right-action"><span class="action-btn" id="forward-schedule-btn">↺</span></div>
+                </div>
                 <div class="page-content">
                     <div class="schedule-section">
                         <div class="schedule-section-title">待完成</div>
@@ -1010,7 +1085,11 @@
 
             <!-- Page 4: More/Settings -->
             <div id="more-screen" class="page">
-                <div class="header"><span class="header-title">设置</span></div>
+                <div class="header">
+                    <div class="left-action"></div>
+                    <div class="center-title"><span>设置</span></div>
+                    <div class="right-action"></div>
+                </div>
                 <div class="page-content">
                     <div class="setting-group">
                         <div class="setting-group-title">外观设置</div>
@@ -1053,7 +1132,6 @@
                         <input type="file" id="import-json-input" accept=".json" style="display:none;">
                         <button class="form-button secondary" id="export-txt-btn">导出为 TXT</button>
                     </div>
-                     <button class="form-button" id="save-all-settings-btn">保存所有设置</button>
                      <p style="text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-secondary);">Technical support from Cava, Claude & Gemini</p>
                 </div>
             </div>
@@ -1229,26 +1307,18 @@
             ELS.chatAvatar.src = state.config.chatAvatar || DEFAULT_AVATAR;
             document.getElementById('max-tokens-input').value = state.config.maxTokens;
             ELS.body.dataset.theme = state.config.theme || 'default';
-            document.querySelector(`input[name="theme"][value="${state.config.theme || 'default'}"]`).checked = true;
+            const themeRadio = document.querySelector(`input[name="theme"][value="${state.config.theme || 'default'}"]`);
+            if (themeRadio) themeRadio.checked = true;
             ELS.accountingScreen.style.backgroundImage = state.config.background ? `url(${state.config.background})` : 'none';
             document.getElementById('setting-user-id').value = state.config.userId || '';
             document.getElementById('setting-user-gender').value = state.config.userGender || '';
             document.getElementById('setting-user-bio').value = state.config.userBio || '';
         }
         
-        async function saveAllSettings() {
-            state.config.chatName = document.getElementById('setting-chat-name').value;
-            state.config.chatAvatar = ELS.chatAvatar.src;
-            state.config.userId = document.getElementById('setting-user-id').value;
-            state.config.userGender = document.getElementById('setting-user-gender').value;
-            state.config.userBio = document.getElementById('setting-user-bio').value;
-            state.config.theme = document.querySelector('input[name="theme"]:checked').value;
-            state.config.maxTokens = parseInt(document.getElementById('max-tokens-input').value) || 4096;
-            
+        async function updateConfig(key, value) {
+            state.config[key] = value;
             await db.appConfig.put(state.config);
             applyConfigToUI();
-            renderChatMessages();
-            alert('设置已保存！');
         }
 
         function navigateTo(pageId) { 
@@ -1261,15 +1331,26 @@
 
         function setupEventListeners() {
             ELS.navItems.forEach(item => item.addEventListener('click', () => navigateTo(item.dataset.page)));
-            document.getElementById('save-all-settings-btn').addEventListener('click', saveAllSettings);
             
+            // Auto-saving settings
+            document.getElementById('setting-chat-name').addEventListener('input', e => updateConfig('chatName', e.target.value));
+            document.getElementById('setting-user-id').addEventListener('input', e => updateConfig('userId', e.target.value));
+            document.getElementById('setting-user-gender').addEventListener('change', e => updateConfig('userGender', e.target.value));
+            document.getElementById('setting-user-bio').addEventListener('input', e => updateConfig('userBio', e.target.value));
+            document.getElementById('max-tokens-input').addEventListener('change', e => updateConfig('maxTokens', parseInt(e.target.value) || 4096));
+            ELS.themeSelectors.forEach(radio => radio.addEventListener('change', (e) => {
+                ELS.body.dataset.theme = e.target.value;
+                updateConfig('theme', e.target.value);
+            }));
+
             document.getElementById('upload-user-avatar-btn').addEventListener('click', () => document.getElementById('setting-chat-avatar-input').click());
             document.getElementById('setting-chat-avatar-input').addEventListener('change', (e) => {
-                handleAvatarUpload(e, (base64) => { ELS.chatAvatar.src = base64; });
+                handleAvatarUpload(e, (base64) => { ELS.chatAvatar.src = base64; updateConfig('chatAvatar', base64); });
             });
             
-            document.getElementById('setting-chat-bg-input').addEventListener('change', async (e) => { if (!e.target.files[0]) return; const base64 = await fileToBase64(e.target.files[0]); state.config.background = base64; await db.appConfig.put(state.config); applyConfigToUI(); });
-            document.getElementById('remove-bg-btn').addEventListener('click', async () => { state.config.background = ''; await db.appConfig.put(state.config); applyConfigToUI(); });
+            document.getElementById('setting-chat-bg-input').addEventListener('change', async (e) => { if (!e.target.files[0]) return; const base64 = await fileToBase64(e.target.files[0]); updateConfig('background', base64); });
+            document.getElementById('remove-bg-btn').addEventListener('click', async () => { updateConfig('background', ''); });
+            
             ELS.chatInput.addEventListener('input', updateSendButtonState);
             ELS.sendBtn.addEventListener('click', sendUserMessage);
             
@@ -1295,6 +1376,9 @@
             ELS.ledgerFilterCategory.addEventListener('change', renderLedger);
             ELS.ledgerSort.addEventListener('change', renderLedger);
             ELS.ledgerCurrency.addEventListener('change', renderLedger);
+            document.getElementById('forward-ledger-btn').addEventListener('click', forwardLedgerToChat);
+            document.getElementById('forward-schedule-btn').addEventListener('click', forwardScheduleToChat);
+
             setupModal('manage-proxies-btn', 'api-proxy-modal', 'close-proxy-modal', renderProxyList);
             setupModal('manage-characters-btn', 'ai-character-modal', 'close-character-modal', renderCharacterList);
             setupModal('manage-currencies-btn', 'currency-list-modal', 'close-currency-list-modal', renderCurrencyList);
@@ -1317,7 +1401,6 @@
             document.getElementById('import-json-btn').addEventListener('click', () => document.getElementById('import-json-input').click());
             document.getElementById('import-json-input').addEventListener('change', importFromJSON);
             document.getElementById('export-txt-btn').addEventListener('click', exportAsTXT);
-            ELS.themeSelectors.forEach(radio => radio.addEventListener('change', (e) => { ELS.body.dataset.theme = e.target.value; }));
             
             ELS.chatSettingsBtn.addEventListener('click', toggleSidebar);
             ELS.sidebarOverlay.addEventListener('click', toggleSidebar);
@@ -1327,6 +1410,43 @@
             document.getElementById('delete-selected-btn').addEventListener('click', deleteSelectedMessages);
             
             document.addEventListener('click', (e) => { if (!e.target.closest('#plus-btn') && !e.target.closest('#plus-menu')) { hidePlusMenu(); } });
+            
+            // Ledger view toggle and swipe
+            const ledgerContent = document.getElementById('ledger-page-content');
+            const ledgerWrapper = document.getElementById('ledger-view-wrapper');
+            let touchStartX = 0;
+            let isChartView = false;
+
+            ledgerContent.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            ledgerContent.addEventListener('touchend', e => {
+                const touchEndX = e.changedTouches[0].screenX;
+                const swipeDist = touchEndX - touchStartX;
+                if (Math.abs(swipeDist) < 50) return;
+
+                if (swipeDist < 0 && !isChartView) { // Swipe left
+                    ledgerWrapper.style.transform = 'translateX(-100%)';
+                    isChartView = true;
+                    document.getElementById('toggle-ledger-view-btn').textContent = '📄';
+                } else if (swipeDist > 0 && isChartView) { // Swipe right
+                    ledgerWrapper.style.transform = 'translateX(0%)';
+                    isChartView = false;
+                    document.getElementById('toggle-ledger-view-btn').textContent = '📊';
+                }
+            });
+
+            document.getElementById('toggle-ledger-view-btn').addEventListener('click', () => {
+                isChartView = !isChartView;
+                if (isChartView) {
+                    ledgerWrapper.style.transform = 'translateX(-100%)';
+                    document.getElementById('toggle-ledger-view-btn').textContent = '📄';
+                } else {
+                    ledgerWrapper.style.transform = 'translateX(0%)';
+                    document.getElementById('toggle-ledger-view-btn').textContent = '📊';
+                }
+            });
         }
         
         function togglePlusMenu() { ELS.plusMenu.classList.toggle('visible'); }
@@ -1446,18 +1566,26 @@
                     const s = state.schedules.find(s => s.id === msg.relatedId);
                     if(!s) continue;
                     const deadlineStr = s.deadline ? formatDeadline(s.deadline) : '无';
-                    content = `[日程提醒] 我定了个事：'${s.title}'。重要程度是 ${s.importance.toFixed(1)}/10，截止日期是 ${deadlineStr}。`;
+                    const descriptionText = s.description ? `说明是“${s.description}”` : "无";
+                    const statusText = s.completed ? '已完成' : '未完成';
+                    content = `[日程提醒] 我定了个事：'${s.title}'。重要程度是 ${s.importance.toFixed(1)}/10，截止日期是 ${deadlineStr}，${descriptionText}，当前状态：${statusText}。`;
                     msgTokens = content.length * 2;
                 } else if (msg.type === 'image') {
                     content = [{ type: "image_url", image_url: { url: msg.content } }];
                     msgTokens = 1000; 
+                } else if (msg.type === 'ledger_summary') {
+                    content = `[用户分享了TA的完整账本数据，内容如下: ${JSON.stringify(state.transactions)}]`;
+                    msgTokens = content.length * 2;
+                } else if (msg.type === 'schedule_summary') {
+                    content = `[用户分享了TA的完整日程数据，内容如下: ${JSON.stringify(state.schedules)}]`;
+                    msgTokens = content.length * 2;
                 } else {
                     content = msg.content;
                     msgTokens = content.length * 2;
                 }
                 
                 if (currentTokens + msgTokens <= maxTokens) {
-                    const finalRole = (msg.type === 'transaction' || msg.type === 'image' || msg.type === 'schedule') ? 'user' : role;
+                    const finalRole = (msg.type !== 'text' && msg.role === 'user') ? 'user' : role;
                     const messageForContext = { role: finalRole, content };
                     
                     if (finalRole === 'assistant' && msg.senderId) {
@@ -1585,9 +1713,15 @@
                 const s = state.schedules.find(s => s.id === msg.relatedId);
                 if (!s) return wrapper;
                 const deadlineStr = s.deadline ? formatDeadline(s.deadline) : '无';
-                contentContainer.innerHTML = `<div class="schedule-card"><div class="schedule-header"><div class="icon">🏷️</div><div class="type-name">${s.eventType==='long'?'长期事件':'单次事件'}</div></div><div class="schedule-body"><div class="schedule-title">${s.title}</div><div class="schedule-importance">重要程度: ${s.importance.toFixed(1)}</div><div class="schedule-deadline">截止: ${deadlineStr}</div>${s.description?`<div class="schedule-description"><span class="original-text">${s.description}</span></div>`:''}</div></div>`;
+                const statusClass = s.completed ? 'completed' : 'pending';
+                const statusText = s.completed ? '已完成' : '未完成';
+                contentContainer.innerHTML = `<div class="schedule-card"><div class="schedule-header"><div class="icon">🏷️</div><div class="type-name">${s.eventType==='long'?'长期事件':'单次事件'}</div></div><div class="schedule-body"><div class="schedule-title">${s.title}</div><div class="schedule-importance">重要程度: ${s.importance.toFixed(1)}</div><div class="schedule-deadline">截止: ${deadlineStr}</div><div class="schedule-status ${statusClass}">状态: ${statusText}</div>${s.description?`<div class="schedule-description"><span class="original-text">${s.description}</span></div>`:''}</div></div>`;
             } else if (msg.type === 'image') {
                 contentContainer.innerHTML = `<img src="${msg.content}" class="chat-image" alt="用户发送的图片">`;
+            } else if (msg.type === 'ledger_summary') {
+                contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">📖</div><div class="type-name">我的账本</div></div><div class="summary-body"><div class="text">已将最新账本信息同步给AI</div></div></div>`;
+            } else if (msg.type === 'schedule_summary') {
+                contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">🗓️</div><div class="type-name">我的日程</div></div><div class="summary-body"><div class="text">已将最新日程信息同步给AI</div></div></div>`;
             } else { 
                 const contentSpan = document.createElement('span');
                 contentSpan.className = 'content-text';
@@ -1663,6 +1797,7 @@
                 } 
             }); 
             
+            // Render List
             ELS.ledgerList.innerHTML = ''; 
             let totalExpense = 0, totalIncome = 0; 
             
@@ -1681,7 +1816,125 @@
                 }); 
             } 
             ELS.ledgerSummary.innerHTML = `总支出 (${displayCurrency}): <span style="color:var(--expense-color)">${totalExpense.toFixed(2)}</span> | 总收入 (${displayCurrency}): <span style="color:var(--income-color)">${totalIncome.toFixed(2)}</span>`;
+
+            // Render Charts
+            renderPieCharts(filtered, displayCurrency);
         }
+
+        function renderPieCharts(transactions, currency) {
+            const expenseData = {};
+            const incomeData = {};
+
+            transactions.forEach(t => {
+                const data = t.type === 'expense' ? expenseData : incomeData;
+                if (!data[t.category]) {
+                    data[t.category] = 0;
+                }
+                data[t.category] += t.displayAmount;
+            });
+
+            drawPieChart('expense-pie-chart', 'expense-pie-legend', expenseData, CATEGORIES.expense, currency);
+            drawPieChart('income-pie-chart', 'income-pie-legend', incomeData, CATEGORIES.income, currency);
+        }
+
+        function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+            const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+            return {
+                x: centerX + (radius * Math.cos(angleInRadians)),
+                y: centerY + (radius * Math.sin(angleInRadians))
+            };
+        }
+
+        function describeArc(x, y, radius, startAngle, endAngle) {
+            const start = polarToCartesian(x, y, radius, endAngle);
+            const end = polarToCartesian(x, y, radius, startAngle);
+            const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+            const d = [ "M", start.x, start.y, "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y, "L", x, y, "L", start.x, start.y ].join(" ");
+            return d;
+        }
+
+        function drawPieChart(svgId, legendId, data, categoryDefinitions, currency) {
+            const svg = document.getElementById(svgId);
+            const legend = document.getElementById(legendId);
+            svg.innerHTML = '';
+            legend.innerHTML = '';
+            svg.setAttribute('viewBox', '0 0 250 250');
+            const tooltip = document.getElementById('pie-chart-tooltip');
+            const totalAmount = Object.values(data).reduce((sum, amount) => sum + amount, 0);
+
+            if (totalAmount === 0) {
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute('x', '50%');
+                text.setAttribute('y', '50%');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', getComputedStyle(document.body).getPropertyValue('--text-secondary'));
+                text.textContent = '无数据';
+                svg.appendChild(text);
+                return;
+            }
+
+            const cx = 125, cy = 125, radius = 110;
+            const colors = ['#f28b82', '#ffc107', '#8dd4bf', '#87c4f4', '#c58af9', '#f4aab6', '#fbc5a6', '#a1c9f4', '#b2e2a4', '#d6a3d6'];
+            let colorIndex = 0;
+            let startAngle = 0;
+
+            const sortedData = Object.entries(data).sort(([, a], [, b]) => b - a);
+
+            for (const [categoryId, amount] of sortedData) {
+                const percentage = (amount / totalAmount) * 100;
+                const angle = percentage / 100 * 360;
+                const endAngle = startAngle + angle;
+                const categoryInfo = categoryDefinitions.find(c => c.id === categoryId);
+                const categoryName = categoryInfo ? categoryInfo.name : '未知';
+                const color = colors[colorIndex++ % colors.length];
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("d", describeArc(cx, cy, radius, startAngle, endAngle));
+                path.setAttribute("fill", color);
+                path.dataset.name = categoryName;
+                path.dataset.amount = amount.toFixed(2);
+                path.dataset.percent = percentage.toFixed(1);
+
+                path.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const currentActive = svg.querySelector('path.active');
+                    if (currentActive && currentActive !== path) currentActive.classList.remove('active');
+                    path.classList.toggle('active');
+
+                    if (path.classList.contains('active')) {
+                        tooltip.innerHTML = `<strong>${path.dataset.name}</strong><br>${path.dataset.percent}%<br>${path.dataset.amount} ${currency}`;
+                        const chartViewRect = document.getElementById('ledger-chart-view').getBoundingClientRect();
+                        const x = e.clientX - chartViewRect.left;
+                        const y = e.clientY - chartViewRect.top + document.getElementById('ledger-chart-view').scrollTop;
+                        tooltip.style.left = `${x}px`;
+                        tooltip.style.top = `${y}px`;
+                        tooltip.style.display = 'block';
+                    } else {
+                        tooltip.style.display = 'none';
+                    }
+                });
+                svg.appendChild(path);
+                
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `<span class="legend-color-box" style="background-color: ${color};"></span><span>${categoryName}</span>`;
+                legend.appendChild(legendItem);
+
+                startAngle = endAngle;
+            }
+        }
+
+        if (!document.getElementById('ledger-chart-view').dataset.listenerAttached) {
+            document.getElementById('ledger-chart-view').addEventListener('click', (e) => {
+                if (e.target.tagName !== 'path') {
+                    document.getElementById('pie-chart-tooltip').style.display = 'none';
+                    const currentActive = document.querySelector('#ledger-chart-view path.active');
+                    if (currentActive) currentActive.classList.remove('active');
+                }
+            });
+            document.getElementById('ledger-chart-view').dataset.listenerAttached = 'true';
+        }
+
         function populateLedgerFilter() { ELS.ledgerFilterCategory.innerHTML = '<option value="all">所有分类</option>'; const allCats = [...CATEGORIES.expense, ...CATEGORIES.income]; const uniqueCats = [...new Map(allCats.map(item => [item.id, item])).values()]; uniqueCats.forEach(cat => { const option = document.createElement('option'); option.value = cat.id; option.textContent = cat.name; ELS.ledgerFilterCategory.appendChild(option); }); }
         
         function populateLedgerCurrencyFilter() {
@@ -1894,6 +2147,9 @@
                 if (msg) {
                     if (msg.type === 'transaction' && msg.relatedId) transIdsToDelete.push(msg.relatedId);
                     if (msg.type === 'schedule' && msg.relatedId) scheduleIdsToDelete.push(msg.relatedId);
+                    if (msg.type === 'ledger_summary' || msg.type === 'schedule_summary') {
+                        // These are just pointers, no related data to delete
+                    }
                 }
             }
             
@@ -2110,6 +2366,20 @@
                 e.stopPropagation();
                 schedule.completed = !schedule.completed;
                 await db.schedules.update(schedule.id, { completed: schedule.completed });
+                
+                // Real-time update in chat
+                const relatedMsg = state.messages.find(m => m.relatedId === schedule.id && m.type === 'schedule');
+                if (relatedMsg) {
+                    const msgElement = document.getElementById(relatedMsg.id);
+                    if (msgElement) {
+                        const statusEl = msgElement.querySelector('.schedule-status');
+                        if (statusEl) {
+                            statusEl.textContent = `状态: ${schedule.completed ? '已完成' : '未完成'}`;
+                            statusEl.className = `schedule-status ${schedule.completed ? 'completed' : 'pending'}`;
+                        }
+                    }
+                }
+                
                 renderSchedules();
             });
             item.addEventListener('click', () => showScheduleDetailModal(schedule.id));
@@ -2210,6 +2480,24 @@
                 document.getElementById('deadline-hour-input').value = '';
                 document.getElementById('deadline-minute-input').value = '';
             }
+        }
+
+        // --- Forward to Chat ---
+        async function forwardLedgerToChat() {
+            if (!confirm('要将完整的账本信息同步到聊天中吗？')) return;
+            const newMsg = { timestamp: Date.now(), role: 'user', content: '', type: 'ledger_summary' };
+            const id = await db.messages.add(newMsg);
+            state.messages.push({ ...newMsg, id });
+            navigateTo('accounting-screen');
+            renderChatMessages();
+        }
+        async function forwardScheduleToChat() {
+            if (!confirm('要将完整的日程信息同步到聊天中吗？')) return;
+            const newMsg = { timestamp: Date.now(), role: 'user', content: '', type: 'schedule_summary' };
+            const id = await db.messages.add(newMsg);
+            state.messages.push({ ...newMsg, id });
+            navigateTo('accounting-screen');
+            renderChatMessages();
         }
 
         // --- General & Utility Functions ---
