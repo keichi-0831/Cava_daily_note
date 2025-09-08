@@ -1,0 +1,2466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cava记事本1.0beta</title>
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <style>
+        :root {
+            --bg-main: #FDF0E9;
+            --bg-secondary: #FFFFFF;
+            --bg-soft: #FAE1D5;
+            --accent-primary: #E6C8B4;
+            --accent-secondary: #FFB6A3;
+            --text-primary: #8C7B73;
+            --text-secondary: #B4A29B;
+            --text-secondary-rgb: 180, 162, 155;
+            --text-light: #FFFFFF;
+            --error-bg: #FADADD;
+            --error-text: #8C2323;
+            --border-color: #F5EBE4;
+            --expense-color: #F28B82;
+            --income-color: #8DD4BF;
+            --shadow-light: rgba(140, 123, 115, 0.1);
+            --shadow-medium: rgba(140, 123, 115, 0.15);
+            /* Schedule colors */
+            --schedule-urgent-important: #FFE5E5;
+            --schedule-urgent-not-important: #FFF5E5;
+            --schedule-not-urgent-important: #E5F0FF;
+            --schedule-not-urgent-not-important: #F0F0F0;
+        }
+
+        body[data-theme="blue"] {
+            --bg-main: #EAF6FF;
+            --bg-secondary: #FFFFFF;
+            --bg-soft: #D4E9F7;
+            --accent-primary: #B0D4EC;
+            --accent-secondary: #87C4F4;
+            --text-primary: #5A7C94;
+            --text-secondary: #9AB7CC;
+            --text-secondary-rgb: 154, 183, 204;
+            --border-color: #E0F0FF;
+            --shadow-light: rgba(90, 124, 148, 0.1);
+            --shadow-medium: rgba(90, 124, 148, 0.15);
+        }
+
+        body[data-theme="green"] {
+            --bg-main: #EFF8F2;
+            --bg-secondary: #FFFFFF;
+            --bg-soft: #DCEEE2;
+            --accent-primary: #B9DCD0;
+            --accent-secondary: #96CDBC;
+            --text-primary: #5E8071;
+            --text-secondary: #9EBAAF;
+            --text-secondary-rgb: 158, 186, 175;
+            --border-color: #E5F1E9;
+            --shadow-light: rgba(94, 128, 113, 0.1);
+            --shadow-medium: rgba(94, 128, 113, 0.15);
+        }
+
+        body[data-theme="purple"] {
+            --bg-main: #F6F2FF;
+            --bg-secondary: #FFFFFF;
+            --bg-soft: #EAE0F7;
+            --accent-primary: #D4C2E8;
+            --accent-secondary: #C0A9E0;
+            --text-primary: #7C6B8F;
+            --text-secondary: #A99CB8;
+            --text-secondary-rgb: 169, 156, 184;
+            --border-color: #F0EBFA;
+            --shadow-light: rgba(124, 107, 143, 0.1);
+            --shadow-medium: rgba(124, 107, 143, 0.15);
+        }
+
+        body[data-theme="pink"] {
+            --bg-main: #FFF0F5;
+            --bg-secondary: #FFFFFF;
+            --bg-soft: #FFE2EC;
+            --accent-primary: #F8C4D8;
+            --accent-secondary: #F4AAB6;
+            --text-primary: #9A6A74;
+            --text-secondary: #C7A5AD;
+            --text-secondary-rgb: 199, 165, 173;
+            --border-color: #FAEBF0;
+            --shadow-light: rgba(154, 106, 116, 0.1);
+            --shadow-medium: rgba(154, 106, 116, 0.15);
+        }
+
+        body[data-theme="gray"] {
+            --bg-main: #F5F5F5;
+            --bg-secondary: #FFFFFF;
+            --bg-soft: #EAEAEA;
+            --accent-primary: #D1D1D1;
+            --accent-secondary: #B0B0B0;
+            --text-primary: #616161;
+            --text-secondary: #9E9E9E;
+            --text-secondary-rgb: 158, 158, 158;
+            --border-color: #EEEEEE;
+            --shadow-light: rgba(97, 97, 97, 0.1);
+            --shadow-medium: rgba(97, 97, 97, 0.15);
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        #app-container {
+            width: 100%;
+            height: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+            background-color: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px var(--shadow-medium);
+            transition: background-color 0.3s ease;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-main);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease, background-color 0.3s ease;
+        }
+
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 1;
+        }
+        
+        /* Header */
+        .header {
+            flex-shrink: 0;
+            padding: 12px 16px;
+            padding-top: calc(12px + env(safe-area-inset-top));
+            background-color: rgba(253, 240, 233, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            z-index: 10;
+            transition: background-color 0.3s ease, border-bottom-color 0.3s ease;
+        }
+        body[data-theme="blue"] .header { background-color: rgba(234, 246, 255, 0.8); }
+        body[data-theme="green"] .header { background-color: rgba(239, 248, 242, 0.8); }
+        body[data-theme="purple"] .header { background-color: rgba(246, 242, 255, 0.8); }
+        body[data-theme="pink"] .header { background-color: rgba(255, 240, 245, 0.8); }
+        body[data-theme="gray"] .header { background-color: rgba(245, 245, 245, 0.8); }
+
+        .header-title { position: absolute; left: 50%; transform: translateX(-50%); }
+        .header .action-btn { font-size: 24px; cursor: pointer; width: 30px; height: 30px; text-align: center; color: var(--accent-primary); display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background-color 0.2s; }
+        .header .action-btn:active { background-color: var(--border-color); }
+        .header .back-btn { font-size: 22px; font-weight: bold; }
+
+        /* Bottom Navigation */
+        #bottom-nav {
+            flex-shrink: 0;
+            display: flex;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid var(--border-color);
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 100;
+            transition: background-color 0.3s ease, border-top-color 0.3s ease;
+        }
+        body[data-theme="blue"] #bottom-nav,
+        body[data-theme="green"] #bottom-nav,
+        body[data-theme="purple"] #bottom-nav,
+        body[data-theme="pink"] #bottom-nav,
+        body[data-theme="gray"] #bottom-nav {
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-item { flex: 1; padding: 8px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); transition: color 0.2s ease; }
+        .nav-item .icon { font-size: 24px; margin-bottom: 2px; }
+        .nav-item .label { font-size: 11px; font-weight: 500; }
+        .nav-item.active { color: var(--accent-secondary); }
+
+        /* --- Chat Page Styles --- */
+        #accounting-screen { background-size: cover; background-position: center; }
+        #chat-messages { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
+
+        .message-wrapper {
+            display: flex;
+            gap: 8px;
+            max-width: 85%;
+            position: relative;
+            align-items: flex-start; /* Aligns top of avatar with top of message-block */
+        }
+        .message-wrapper.user { align-self: flex-end; }
+        .message-wrapper.ai { align-self: flex-start; }
+        
+        .message-wrapper .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .message-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex-grow: 1;
+            min-width: 0; /* Prevents flexbox overflow issues */
+        }
+        .message-wrapper.user .message-block { align-items: flex-end; }
+        
+        .sender-name {
+            font-size: 12px;
+            color: #FFFFFF;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            margin-bottom: 4px;
+        }
+        .message-bubble {
+            display: flex;
+            width: fit-content;
+            max-width: 100%;
+            align-items: flex-end; /* Aligns bubble content with meta info */
+            gap: 4px;
+        }
+        .message-bubble .content {
+            padding: 10px 14px;
+            word-break: break-word;
+            line-height: 1.5;
+            font-size: 16px;
+            box-shadow: 0 2px 5px var(--shadow-light);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .message-bubble .content strong { font-weight: bold; }
+        .message-bubble .content em { font-style: italic; }
+        .message-wrapper.user .message-bubble .content { background-color: var(--bg-soft); color: var(--text-primary); border-radius: 18px 8px 18px 18px; }
+        .message-wrapper.ai .message-bubble .content { background-color: var(--bg-secondary); color: var(--text-primary); border-radius: 8px 18px 18px 18px; }
+        .message-wrapper.error .message-bubble .content { background-color: var(--error-bg); color: var(--error-text); }
+        
+        .message-meta {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+            margin-bottom: 4px; /* Minor adjustment for better visual alignment */
+        }
+        .message-wrapper:hover .message-meta { opacity: 1; }
+        
+        .timestamp { font-size: 10px; color: var(--text-secondary); }
+        .message-actions-trigger {
+            font-family: 'Segoe UI Symbol', sans-serif;
+            font-size: 20px;
+            color: #FFFFFF;
+            background-color: rgba(var(--text-secondary-rgb), 0.5);
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message-wrapper.user .message-bubble { flex-direction: row-reverse; }
+        .selection-mode-active .message-meta, .message-bubble.editing .message-meta { display: none; }
+
+        .message-bubble.image .content { padding: 5px; border-radius: 18px; }
+        .chat-image { max-width: 200px; max-height: 200px; border-radius: 13px; display: block; cursor: pointer; }
+
+        @keyframes typing { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .typing-indicator span { animation: typing 1.5s infinite; display: inline-block; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        #chat-input-area {
+            flex-shrink: 0;
+            padding: 8px 12px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            background-color: rgba(253, 240, 233, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            transition: background-color 0.3s ease, border-top-color 0.3s ease, transform 0.3s ease;
+        }
+        .selection-mode-active #chat-input-area { transform: translateY(100%); }
+
+        .chat-action-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; flex-shrink: 0; box-shadow: 0 1px 3px var(--shadow-light); transition: transform 0.2s, background-color 0.3s; }
+        .chat-action-btn:active { transform: scale(0.9); background-color: var(--bg-soft); }
+        #chat-input { flex-grow: 1; border: none; padding: 10px 15px; border-radius: 18px; background-color: var(--bg-secondary); font-size: 16px; max-height: 100px; resize: none; box-shadow: 0 1px 3px var(--shadow-light); transition: background-color 0.3s; }
+        #chat-input:focus { outline: none; }
+        #send-btn { background-color: var(--accent-secondary); color: var(--text-light); font-weight: 600; font-size: 14px; flex-shrink: 0; height: 36px; padding: 0 15px; border-radius: 18px; border: none; cursor: pointer; transition: background-color 0.3s; }
+        #send-btn:disabled { background-color: var(--accent-primary); cursor: not-allowed; }
+        
+        /* Plus Menu */
+        #plus-menu {
+            position: absolute;
+            bottom: 60px;
+            left: 12px;
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px var(--shadow-medium);
+            padding: 8px;
+            display: none;
+            z-index: 150;
+            min-width: 140px;
+        }
+        #plus-menu.visible { display: block; }
+        #plus-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        #plus-menu button:hover { background-color: var(--bg-soft); }
+
+        /* Selection Mode */
+        #selection-action-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            flex-shrink: 0;
+            padding: 8px 12px;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            background-color: rgba(253, 240, 233, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 15;
+            box-sizing: border-box;
+        }
+        .selection-mode-active #selection-action-bar { display: flex; }
+        #selection-action-bar button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 18px;
+            border: none;
+            cursor: pointer;
+        }
+        #delete-selected-btn { background-color: var(--error-bg); color: var(--error-text); }
+        #cancel-selection-btn { background-color: var(--border-color); color: var(--text-primary); }
+        .message-selection-checkbox {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent-primary);
+            background-color: var(--bg-secondary);
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-size: 14px;
+            z-index: 5;
+        }
+        .selection-mode-active .message-selection-checkbox { display: flex; }
+        .message-wrapper.user .message-selection-checkbox { left: -30px; }
+        .message-wrapper.ai .message-selection-checkbox { right: -30px; }
+        .message-wrapper.selected .message-selection-checkbox {
+            background-color: var(--accent-secondary);
+            border-color: var(--accent-secondary);
+        }
+        .selection-mode-active #chat-messages { padding-left: 40px; padding-right: 40px; }
+
+        /* Transaction & Schedule Message Cards */
+        .message-bubble.transaction .content, .message-bubble.schedule .content { padding: 0; background: transparent; box-shadow: none; }
+        .transaction-card, .schedule-card { width: 220px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 12px var(--shadow-medium); background: var(--bg-secondary); }
+        .transaction-header, .schedule-header { padding: 10px 15px; display: flex; align-items: center; gap: 10px; color: var(--text-light); }
+        .transaction-header.expense { background-color: var(--expense-color); }
+        .transaction-header.income { background-color: var(--income-color); }
+        .schedule-header { background-color: var(--accent-secondary); }
+        .transaction-header .icon, .schedule-header .icon { font-size: 24px; }
+        .transaction-header .category-name, .schedule-header .type-name { font-size: 16px; font-weight: bold; }
+        .transaction-body, .schedule-body { padding: 15px; }
+        .transaction-amount { font-size: 28px; font-weight: bold; color: var(--text-primary); margin-bottom: 8px; }
+        .transaction-amount .currency-label { font-size: 0.5em; }
+        .transaction-remark { font-size: 14px; color: var(--text-secondary); border-top: 1px dashed var(--border-color); padding-top: 8px; word-break: break-all; position: relative; }
+        .transaction-remark:before { content: '📝 '; }
+        .schedule-title { font-size: 18px; font-weight: bold; color: var(--text-primary); margin-bottom: 8px; }
+        .schedule-importance, .schedule-deadline { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
+        .schedule-description { font-size: 14px; color: var(--text-secondary); border-top: 1px dashed var(--border-color); padding-top: 8px; word-break: break-all; }
+
+        /* Inline Edit Styles */
+        .inline-edit-container {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            padding: 10px 14px;
+            box-sizing: border-box;
+        }
+        .message-bubble.editing .content-text,
+        .message-bubble.editing .transaction-remark .original-text,
+        .message-bubble.editing .schedule-description .original-text {
+            display: none;
+        }
+        .message-bubble.editing .transaction-remark::before,
+        .message-bubble.editing .schedule-description::before {
+             display: none;
+        }
+        .message-bubble.editing .inline-edit-container {
+            display: flex;
+        }
+        .message-bubble.editing.text .content {
+            padding: 0;
+        }
+        .message-bubble.editing.transaction .transaction-remark,
+        .message-bubble.editing.schedule .schedule-description {
+            padding-top: 0;
+            border-top: none;
+        }
+        .transaction-card .inline-edit-container,
+        .schedule-card .inline-edit-container {
+            padding: 8px 0 0 0;
+        }
+        .inline-edit-textarea {
+            width: 100%;
+            border: 1px solid var(--accent-primary);
+            border-radius: 8px;
+            font-size: 16px;
+            padding: 10px 14px;
+            box-sizing: border-box;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            resize: none;
+            min-height: 40px;
+            font-family: inherit;
+            line-height: 1.5;
+            overflow-y: hidden;
+        }
+        .transaction-card .inline-edit-textarea,
+        .schedule-card .inline-edit-textarea {
+             font-size: 14px;
+             padding: 8px;
+             line-height: 1.4;
+        }
+
+        .inline-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .inline-edit-actions button {
+            border: none;
+            background-color: var(--bg-soft);
+            color: var(--text-primary);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .inline-edit-actions button:active {
+            transform: scale(0.9);
+        }
+        .inline-edit-actions .save {
+            background-color: var(--income-color);
+            color: white;
+        }
+        .inline-edit-actions .cancel {
+            background-color: var(--expense-color);
+            color: white;
+        }
+
+        /* Transaction Input Panel */
+        #transaction-panel { position: absolute; bottom: 0; left: 0; width: 100%; background-color: var(--bg-main); border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px var(--shadow-medium); z-index: 200; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease; visibility: hidden; }
+        #transaction-panel.visible { transform: translateY(0); visibility: visible; }
+        .panel-header { padding: 8px 15px; text-align: center; font-weight: 600; position: relative; }
+        .panel-header .close-btn { position: absolute; left: 15px; top: 8px; font-size: 18px; line-height: 1; color: var(--text-secondary); cursor: pointer; }
+        .type-selector { display: flex; padding: 0 15px; margin-bottom: 15px; }
+        .type-selector button { flex: 1; padding: 10px; font-size: 16px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; position: relative; }
+        .type-selector button.active { color: var(--text-primary); font-weight: bold; }
+        .type-selector button.active::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--accent-secondary); border-radius: 2px; }
+        #category-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 0 15px 15px; max-height: 200px; overflow-y: auto; }
+        .category-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 5px; border-radius: 8px; transition: background-color 0.2s; }
+        .category-item.selected { background-color: var(--bg-soft); }
+        .category-item .icon { font-size: 28px; margin-bottom: 5px; }
+        .category-item .name { font-size: 12px; }
+        #numpad-container { display: grid; grid-template-columns: 3fr 1fr; background-color: var(--bg-secondary); padding-bottom: env(safe-area-inset-bottom); }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .numpad button { padding: 20px 0; font-size: 24px; border: none; background: transparent; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); }
+        .numpad button:active { background-color: var(--bg-soft); }
+        .numpad .zero { grid-column: 1 / 3; }
+        .numpad-actions { display: flex; flex-direction: column; }
+        .numpad-actions button { flex: 1; font-size: 22px; border: none; background: transparent; border-top: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); }
+        .numpad-actions button:active { background-color: var(--bg-soft); }
+        .numpad-actions .confirm { background-color: var(--accent-secondary); color: white; font-weight: bold; font-size: 18px; }
+        #amount-display-container { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); border-top-left-radius: 20px; border-top-right-radius: 20px; }
+        #currency-selector { font-size: 18px; font-weight: bold; color: var(--text-secondary); padding: 5px; cursor: pointer; }
+        #amount-display { font-size: 32px; font-weight: bold; text-align: right; flex-grow: 1; }
+
+        /* Schedule Input Panel */
+        #schedule-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--bg-main);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -5px 20px var(--shadow-medium);
+            z-index: 200;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+        }
+        #schedule-panel.visible {
+            transform: translateY(0);
+            visibility: visible;
+        }
+        .schedule-form {
+            padding: 15px;
+            overflow-y: auto;
+        }
+        .schedule-form-section {
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .schedule-form-section label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 8px;
+            padding-left: 5px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .schedule-form-section.red { background-color: #F8D7DA; }
+        .schedule-form-section.pink { background-color: #F8C4D8; }
+        .schedule-form-section.purple { background-color: #EAE0F7; }
+        .schedule-form-section.blue { background-color: #D4E9F7; }
+        
+        .event-type-toggle {
+            display: flex;
+            gap: 10px;
+            background: var(--bg-secondary);
+            padding: 5px;
+            border-radius: 8px;
+        }
+        .event-type-toggle button {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid transparent;
+            background-color: transparent;
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .event-type-toggle button.active {
+            background-color: var(--accent-secondary);
+            color: white;
+            border-color: var(--accent-secondary);
+        }
+        .importance-stars {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .star {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--border-color);
+            transition: color 0.2s;
+            user-select: none;
+        }
+        .star.filled { color: #FFB800; }
+        .star.half { position: relative; color: var(--border-color); }
+        .star.half::before {
+            content: '★';
+            position: absolute;
+            left: 0;
+            width: 50%;
+            overflow: hidden;
+            color: #FFB800;
+        }
+        .importance-score {
+            margin-left: auto;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+        .deadline-inputs {
+            display: flex;
+            align-items: center;
+            background: var(--bg-secondary);
+            padding: 5px 12px;
+            border-radius: 8px;
+        }
+        #deadline-display-text {
+            flex-grow: 1;
+            text-align: left;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px 5px;
+        }
+        .time-input-part {
+            display: flex;
+            align-items: center;
+        }
+        .time-input {
+            width: 35px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 16px;
+            color: var(--text-primary);
+            padding: 8px 0;
+        }
+        .time-input::-webkit-outer-spin-button,
+        .time-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .time-input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .time-input:focus {
+            outline: none;
+        }
+        .time-input::placeholder {
+            color: var(--text-secondary);
+        }
+        .time-separator {
+            color: var(--text-primary);
+            padding: 0 2px;
+            font-size: 16px;
+        }
+
+        #schedule-title-input, #schedule-description-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        #schedule-description-input { min-height: 60px; resize: vertical; }
+        
+        .schedule-actions {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom));
+        }
+        .schedule-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .schedule-actions .cancel-btn { background-color: var(--border-color); color: var(--text-primary); }
+        .schedule-actions .confirm-btn { background-color: var(--accent-secondary); color: white; }
+
+        /* Calendar Modal */
+        #calendar-modal .modal-content { max-width: 320px; }
+        #calendar-modal .modal-body { padding: 5px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; }
+        .calendar-header button { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-primary); }
+        .calendar-month-year { font-size: 18px; font-weight: 600; }
+        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-secondary); padding-bottom: 5px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .calendar-day {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .calendar-day.other-month { color: var(--text-secondary); opacity: 0.5; }
+        .calendar-day:not(.other-month):hover { background-color: var(--bg-soft); }
+        .calendar-day.today { font-weight: bold; border: 1px solid var(--accent-primary); }
+        .calendar-day.selected { background-color: var(--accent-secondary); color: white; }
+        #calendar-modal .modal-footer { justify-content: space-between; }
+        #clear-date-btn { background-color: var(--error-bg); color: var(--error-text); }
+
+
+        /* Schedule Page */
+        #schedule-screen .page-content { flex-grow: 1; overflow-y: auto; padding: 15px; }
+        .schedule-section { margin-bottom: 30px; }
+        .schedule-section-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid var(--accent-primary); }
+        .schedule-quadrant { margin-bottom: 20px; }
+        .quadrant-header { display: flex; align-items: center; margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; }
+        .quadrant-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        #quadrant-1 .quadrant-header { background-color: var(--schedule-urgent-important); }
+        #quadrant-2 .quadrant-header { background-color: var(--schedule-not-urgent-important); }
+        #quadrant-3 .quadrant-header { background-color: var(--schedule-urgent-not-important); }
+        #quadrant-4 .quadrant-header { background-color: var(--schedule-not-urgent-not-important); }
+        .schedule-items { display: flex; flex-direction: column; gap: 8px; }
+        .schedule-item { display: flex; align-items: center; padding: 12px; background-color: var(--bg-secondary); border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-light); cursor: pointer; transition: transform 0.2s; }
+        .schedule-item:active { transform: scale(0.98); }
+        .schedule-item .title { flex-grow: 1; font-size: 16px; color: var(--text-primary); }
+        .schedule-item .checkbox { width: 20px; height: 20px; border: 2px solid var(--accent-primary); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; margin-left: 10px; }
+        .schedule-item.completed .checkbox { background-color: var(--accent-secondary); border-color: var(--accent-secondary); }
+        .schedule-item.completed .checkbox::after { content: '✓'; color: white; font-weight: bold; }
+        .schedule-item.completed .title { text-decoration: line-through; color: var(--text-secondary); }
+        .empty-state { text-align: center; padding: 20px; color: var(--text-secondary); }
+
+        /* Ledger Page */
+        #ledger-screen .page-content { flex-grow: 1; overflow-y: auto; padding: 15px; }
+        .ledger-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 0 15px 15px; border-bottom: 1px solid var(--border-color); }
+        .ledger-controls select { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; }
+        #ledger-list { list-style: none; padding: 0; margin: 0; }
+        .ledger-item { background-color: var(--bg-secondary); border-radius: 12px; margin-bottom: 12px; padding: 12px 15px; display: flex; align-items: center; box-shadow: 0 2px 5px var(--shadow-light); }
+        .ledger-item .icon { font-size: 28px; margin-right: 15px; }
+        .ledger-item .details { flex-grow: 1; }
+        .ledger-item .details .remark { font-weight: 500; margin-bottom: 4px; }
+        .ledger-item .details .time { font-size: 12px; color: var(--text-secondary); }
+        .ledger-item .amount { font-size: 18px; font-weight: bold; }
+        .ledger-item .amount.expense { color: var(--expense-color); }
+        .ledger-item .amount.income { color: var(--income-color); }
+        #ledger-summary { text-align: center; padding: 20px; color: var(--text-secondary); }
+
+        /* More/Settings Page */
+        #more-screen .page-content { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .setting-group { margin-bottom: 25px; }
+        .setting-group-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid var(--accent-primary); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--accent-primary); border-radius: 8px; font-size: 16px; box-sizing: border-box; background-color: var(--bg-secondary); color: var(--text-primary); }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-button { width: 100%; padding: 14px; background-color: var(--accent-secondary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .form-button.secondary { background-color: var(--accent-primary); }
+        .list-item-setting { background-color: var(--bg-secondary); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px var(--shadow-light); position: relative; }
+        .list-item-setting .name { font-weight: 500; }
+        .list-item-setting .details { font-size: 12px; color: var(--text-secondary); word-break: break-all; }
+        .list-item-actions { position: absolute; top: 50%; transform: translateY(-50%); right: 10px; display: flex; gap: 5px; }
+        .list-item-actions button { border: none; background: none; font-size: 18px; cursor: pointer; color: var(--text-secondary); }
+        .avatar-upload { display: flex; align-items: center; gap: 15px; }
+        .avatar-upload img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background-color: var(--border-color); }
+        .avatar-upload button { padding: 8px 12px; border: 1px solid var(--accent-primary); background-color: transparent; color: var(--text-primary); border-radius: 5px; cursor: pointer; }
+        .avatar-upload input[type="file"] { display: none; }
+        
+        /* Theme Selector */
+        .theme-selector { display: flex; gap: 15px; flex-wrap: wrap; }
+        .theme-option { cursor: pointer; text-align: center; }
+        .theme-option .swatch { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-color); margin-bottom: 5px; display: flex; justify-content: center; align-items: center; transition: border-color 0.2s; }
+        .theme-option .swatch.default { background-color: #FAE1D5; }
+        .theme-option .swatch.blue { background-color: #D4E9F7; }
+        .theme-option .swatch.green { background-color: #DCEEE2; }
+        .theme-option .swatch.purple { background-color: #EAE0F7; }
+        .theme-option .swatch.pink { background-color: #FFE2EC; }
+        .theme-option .swatch.gray { background-color: #EAEAEA; }
+        .theme-option input { display: none; }
+        .theme-option input:checked + .swatch { border-color: var(--accent-secondary); }
+        .theme-option input:checked + .swatch::after { content: '✓'; color: var(--accent-secondary); font-weight: bold; }
+        .theme-option .label { font-size: 12px; }
+        
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay.visible { display: flex; }
+        .modal-content { width: 90%; max-width: 350px; background-color: var(--bg-main); border-radius: 15px; display: flex; flex-direction: column; box-shadow: 0 5px 20px var(--shadow-medium); }
+        .modal-header { padding: 15px; font-weight: 600; border-bottom: 1px solid var(--border-color); text-align: center; }
+        .modal-body { padding: 15px; overflow-y: auto; max-height: 70vh; }
+        .modal-footer { padding: 15px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-footer button { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 16px; font-weight: 500; }
+        .modal-footer .save-btn { background-color: var(--accent-secondary); color: white; }
+        .modal-footer .cancel-btn { background-color: var(--border-color); color: var(--text-primary); }
+        #ai-character-selector .character-item { padding: 12px; border-radius: 8px; margin-bottom: 10px; background-color: var(--bg-secondary); display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        #ai-character-selector .character-item:hover { background-color: var(--bg-soft); }
+        #ai-character-selector .character-item img { width: 40px; height: 40px; border-radius: 50%; }
+        #ai-character-selector .character-item .name { font-weight: bold; }
+        #message-action-menu { z-index: 1100; }
+        #message-action-menu .modal-content { width: 200px; }
+        #message-action-menu .modal-body { padding: 0; }
+        #message-action-menu button { width: 100%; display: block; padding: 15px; background: none; border: none; border-bottom: 1px solid var(--border-color); font-size: 16px; cursor: pointer; text-align: center; }
+        #message-action-menu button:last-child { border-bottom: none; }
+        #message-action-menu button.danger { color: var(--error-text); }
+        #schedule-detail-modal .modal-body .detail-row { margin-bottom: 15px; }
+        #schedule-detail-modal .modal-body .detail-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 5px; }
+        #schedule-detail-modal .modal-body .detail-value { font-size: 16px; color: var(--text-primary); white-space: pre-wrap; word-break: break-all; }
+        
+        /* Cropper Modal */
+        #cropper-modal .modal-body { padding: 0; }
+        #cropper-image-container { max-height: 60vh; }
+        #cropper-image-container img { max-width: 100%; }
+
+        /* Sidebar */
+        #sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 198;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #sidebar-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #chat-sidebar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 75%;
+            max-width: 300px;
+            height: 100%;
+            background-color: var(--bg-main);
+            box-shadow: 2px 0 15px var(--shadow-medium);
+            z-index: 199;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-sidebar.visible {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 15px;
+            padding-top: calc(15px + env(safe-area-inset-top));
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .sidebar-content {
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .sidebar-item {
+            margin-bottom: 20px;
+        }
+        .sidebar-item label {
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .sidebar-item .value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent-secondary);
+        }
+        #sidebar-preview-content {
+            background-color: var(--bg-soft);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 40vh;
+            overflow-y: auto;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body data-theme="default">
+    <div id="app-container">
+        <div id="sidebar-overlay"></div>
+        <div id="chat-sidebar">
+            <div class="sidebar-header">聊天助手</div>
+            <div class="sidebar-content">
+                <div class="sidebar-item">
+                    <label>当前上下文 Tokens</label>
+                    <div id="sidebar-token-count" class="value">0</div>
+                </div>
+                <button class="form-button secondary" id="preview-context-btn">预览上下文</button>
+                <pre id="sidebar-preview-content"></pre>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Page 1: Accounting (Chat) -->
+            <div id="accounting-screen" class="page active">
+                <div class="header">
+                    <span class="action-btn" id="chat-settings-btn">≡</span>
+                    <span id="chat-header-title" class="header-title">我的记事本</span>
+                    <span></span>
+                </div>
+                <div id="chat-messages"></div>
+                <div id="selection-action-bar">
+                    <button id="delete-selected-btn">删除</button>
+                    <button id="cancel-selection-btn">取消</button>
+                </div>
+                <div id="plus-menu">
+                    <button id="add-transaction-btn">💰 记一笔</button>
+                    <button id="add-schedule-btn">🏷️ 定个事</button>
+                </div>
+                <div id="chat-input-area">
+                    <button class="chat-action-btn" id="plus-btn">➕</button>
+                    <button class="chat-action-btn" id="ai-trigger-btn">🤖</button>
+                    <button class="chat-action-btn" id="image-upload-btn">🖼️</button>
+                    <input type="file" id="image-upload-input" accept="image/*" style="display:none;">
+                    <textarea id="chat-input" rows="1" placeholder="添加备注..."></textarea>
+                    <button id="send-btn" disabled>发送</button>
+                </div>
+            </div>
+
+            <!-- Page 2: Ledger -->
+            <div id="ledger-screen" class="page">
+                 <div class="header"><span class="header-title">我的账本</span></div>
+                <div class="ledger-controls">
+                    <select id="ledger-filter-category"><option value="all">所有分类</option></select>
+                    <select id="ledger-currency"></select>
+                    <select id="ledger-sort"><option value="time_desc">时间倒序</option><option value="time_asc">时间正序</option><option value="amount_desc">金额倒序</option><option value="amount_asc">金额正序</option></select>
+                </div>
+                <div class="page-content"><ul id="ledger-list"></ul><div id="ledger-summary"></div></div>
+            </div>
+
+            <!-- Page 3: Schedule -->
+            <div id="schedule-screen" class="page">
+                <div class="header"><span class="header-title">我的日程</span></div>
+                <div class="page-content">
+                    <div class="schedule-section">
+                        <div class="schedule-section-title">待完成</div>
+                        <div class="schedule-quadrant" id="quadrant-1">
+                            <div class="quadrant-header">
+                                <div class="quadrant-title">重要且紧急</div>
+                            </div>
+                            <div class="schedule-items" id="quadrant-1-items"></div>
+                        </div>
+                        <div class="schedule-quadrant" id="quadrant-2">
+                            <div class="quadrant-header">
+                                <div class="quadrant-title">重要不紧急</div>
+                            </div>
+                            <div class="schedule-items" id="quadrant-2-items"></div>
+                        </div>
+                        <div class="schedule-quadrant" id="quadrant-3">
+                            <div class="quadrant-header">
+                                <div class="quadrant-title">紧急不重要</div>
+                            </div>
+                            <div class="schedule-items" id="quadrant-3-items"></div>
+                        </div>
+                        <div class="schedule-quadrant" id="quadrant-4">
+                            <div class="quadrant-header">
+                                <div class="quadrant-title">不紧急不重要</div>
+                            </div>
+                            <div class="schedule-items" id="quadrant-4-items"></div>
+                        </div>
+                    </div>
+                    <div class="schedule-section">
+                        <div class="schedule-section-title">已完成</div>
+                        <div class="schedule-items" id="completed-items"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 4: More/Settings -->
+            <div id="more-screen" class="page">
+                <div class="header"><span class="header-title">设置</span></div>
+                <div class="page-content">
+                    <div class="setting-group">
+                        <div class="setting-group-title">外观设置</div>
+                        <div class="form-group">
+                            <label>主题选择</label>
+                            <div class="theme-selector">
+                                <label class="theme-option"><input type="radio" name="theme" value="default" checked><div class="swatch default"></div><span class="label">暖阳甜杏</span></label>
+                                <label class="theme-option"><input type="radio" name="theme" value="blue"><div class="swatch blue"></div><span class="label">晴空苏打</span></label>
+                                <label class="theme-option"><input type="radio" name="theme" value="green"><div class="swatch green"></div><span class="label">薄荷微风</span></label>
+                                <label class="theme-option"><input type="radio" name="theme" value="purple"><div class="swatch purple"></div><span class="label">紫藤幻梦</span></label>
+                                <label class="theme-option"><input type="radio" name="theme" value="pink"><div class="swatch pink"></div><span class="label">樱落星辰</span></label>
+                                <label class="theme-option"><input type="radio" name="theme" value="gray"><div class="swatch gray"></div><span class="label">静谧书影</span></label>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>聊天背景</label><div class="avatar-upload"><button onclick="document.getElementById('setting-chat-bg-input').click()">上传</button><button id="remove-bg-btn" style="background-color: var(--expense-color); color: white;">移除背景</button><input type="file" id="setting-chat-bg-input" accept="image/*"></div></div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-group-title">我的资料</div>
+                        <div class="form-group"><label>群聊名称</label><input type="text" id="setting-chat-name"></div>
+                        <div class="form-group"><label>头像</label><div class="avatar-upload"><img id="setting-chat-avatar-preview"><button id="upload-user-avatar-btn">上传</button><input type="file" id="setting-chat-avatar-input" accept="image/*"></div></div>
+                        <div class="form-group"><label>ID</label><input type="text" id="setting-user-id" placeholder="可选填"></div>
+                        <div class="form-group"><label>性别</label><select id="setting-user-gender"><option value="">未设置</option><option value="male">男</option><option value="female">女</option></select></div>
+                        <div class="form-group"><label>个人说明</label><textarea id="setting-user-bio" placeholder="可选填"></textarea></div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-group-title">AI 设置</div>
+                        <div class="form-group"><label for="max-tokens-input">最大上下文长度 (Token)</label><input type="number" id="max-tokens-input" placeholder="建议 4000-8000"></div>
+                        <p style="font-size:12px; color: var(--text-secondary); margin-top:-10px; margin-bottom: 15px;">此设置用于限制发送给AI的聊天记录长度，防止超出模型限制。1个汉字约等于2个Token。</p>
+                        <button class="form-button secondary" id="manage-proxies-btn">管理API反代</button>
+                        <button class="form-button secondary" id="manage-characters-btn">管理AI角色</button>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-group-title">币种设置</div>
+                        <button class="form-button secondary" id="manage-currencies-btn">管理币种和汇率</button>
+                    </div>
+                     <div class="setting-group">
+                        <div class="setting-group-title">记录管理</div>
+                        <button class="form-button secondary" id="export-json-btn">导出为 JSON</button>
+                        <button class="form-button secondary" id="import-json-btn">从 JSON 导入</button>
+                        <input type="file" id="import-json-input" accept=".json" style="display:none;">
+                        <button class="form-button secondary" id="export-txt-btn">导出为 TXT</button>
+                    </div>
+                     <button class="form-button" id="save-all-settings-btn">保存所有设置</button>
+                     <p style="text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-secondary);">Technical support from Cava, Claude & Gemini</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Input Panel -->
+        <div id="transaction-panel">
+            <div class="panel-header"><span class="close-btn" id="close-transaction-panel">×</span></div>
+            <div id="amount-display-container"><span id="currency-selector">RMB</span><div id="amount-display">0.00</div></div>
+            <div class="type-selector"><button id="type-expense-btn" class="active">支出</button><button id="type-income-btn">收入</button></div>
+            <div id="category-selector"></div>
+            <div id="numpad-container">
+                <div class="numpad"><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="zero" data-key="0">0</button><button data-key=".">.</button></div>
+                <div class="numpad-actions"><button id="numpad-delete">⌫</button><button id="numpad-confirm" class="confirm">完成</button></div>
+            </div>
+        </div>
+
+        <!-- Schedule Input Panel -->
+        <div id="schedule-panel">
+            <div class="panel-header">
+                <span class="close-btn" id="close-schedule-panel">×</span>
+                <span style="font-weight: 600;">新建日程</span>
+            </div>
+            <div class="schedule-form">
+                <div class="schedule-form-section red">
+                    <label>事项类别</label>
+                    <div class="event-type-toggle">
+                        <button id="schedule-type-once" class="active">单次事件</button>
+                        <button id="schedule-type-long">长期事件</button>
+                    </div>
+                </div>
+                 <div class="schedule-form-section blue">
+                    <label>标题</label>
+                    <input type="text" id="schedule-title-input" placeholder="输入事件标题">
+                </div>
+                <div class="schedule-form-section pink">
+                    <label>重要程度</label>
+                    <div class="importance-stars" id="importance-stars">
+                        <span class="star" data-value="1">★</span>
+                        <span class="star" data-value="2">★</span>
+                        <span class="star" data-value="3">★</span>
+                        <span class="star" data-value="4">★</span>
+                        <span class="star" data-value="5">★</span>
+                        <span class="importance-score" id="importance-score">0.0</span>
+                    </div>
+                </div>
+                <div class="schedule-form-section purple">
+                    <label>截止日期</label>
+                    <div class="deadline-inputs">
+                        <span id="deadline-display-text">选择日期</span>
+                        <div class="time-input-part">
+                            <input type="number" id="deadline-hour-input" class="time-input" placeholder="时">
+                            <span class="time-separator">:</span>
+                            <input type="number" id="deadline-minute-input" class="time-input" placeholder="分">
+                        </div>
+                    </div>
+                </div>
+                <div class="schedule-form-section blue">
+                    <label>具体说明</label>
+                    <textarea id="schedule-description-input" placeholder="输入具体说明（可选）"></textarea>
+                </div>
+            </div>
+            <div class="schedule-actions">
+                <button class="cancel-btn" id="cancel-schedule-btn">取消</button>
+                <button class="confirm-btn" id="confirm-schedule-btn">确定</button>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div id="bottom-nav">
+            <div class="nav-item active" data-page="accounting-screen"><div class="icon">💬</div><div class="label">记事</div></div>
+            <div class="nav-item" data-page="ledger-screen"><div class="icon">📖</div><div class="label">账本</div></div>
+            <div class="nav-item" data-page="schedule-screen"><div class="icon">🗓️</div><div class="label">日程</div></div>
+            <div class="nav-item" data-page="more-screen"><div class="icon">⚙️</div><div class="label">设置</div></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="calendar-modal" class="modal-overlay"><div class="modal-content"><div class="modal-body"><div class="calendar-header"><button id="prev-month-btn">&lt;</button><span id="calendar-month-year" class="calendar-month-year"></span><button id="next-month-btn">&gt;</button></div><div class="calendar-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="calendar-grid" id="calendar-grid"></div></div><div class="modal-footer"><button class="cancel-btn" id="clear-date-btn">清除日期</button><button class="cancel-btn" id="close-calendar-btn">关闭</button></div></div></div>
+    <div id="api-proxy-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">管理API反代</div><div class="modal-body"><div id="proxy-list"></div><button class="form-button" id="add-proxy-btn">＋ 添加新反代</button></div><div class="modal-footer"><button class="cancel-btn" id="close-proxy-modal">关闭</button></div></div></div>
+    <div id="proxy-editor-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header" id="proxy-editor-title">编辑反代</div><div class="modal-body"><div class="form-group"><label>自定义名称</label><input type="text" id="proxy-editor-name" placeholder="如 Cava的API"></div><div class="form-group"><label>URL (无需 /v1)</label><input type="text" id="proxy-editor-url"></div><div class="form-group"><label>API Key</label><input type="password" id="proxy-editor-apikey"></div><div class="form-group"><label>Model(s) (换行分隔)</label><textarea id="proxy-editor-models" rows="3" placeholder="gpt-4o&#10;claude-3-opus-20240229"></textarea></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">保存</button></div></div></div>
+    <div id="ai-character-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">管理AI角色</div><div class="modal-body"><div id="character-list"></div><button class="form-button" id="add-character-btn">＋ 添加新角色</button></div><div class="modal-footer"><button class="cancel-btn" id="close-character-modal">关闭</button></div></div></div>
+    <div id="character-editor-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header" id="character-editor-title">编辑角色</div><div class="modal-body"><div class="form-group"><label>角色名称</label><input type="text" id="character-editor-name"></div><div class="form-group"><label>角色头像</label><div class="avatar-upload"><img id="character-editor-avatar-preview"><button id="upload-char-avatar-btn">上传</button><input type="file" id="character-editor-avatar-input" accept="image/*"></div></div><div class="form-group"><label>Prompt (人设)</label><textarea id="character-editor-prompt" rows="5"></textarea></div><div class="form-group"><label>主用API</label><select id="character-editor-proxy"></select></div><div class="form-group"><label>主用模型</label><select id="character-editor-model"></select></div><div class="form-group"><label>备用API (可选)</label><select id="character-editor-backup-proxy"></select></div><div class="form-group"><label>备用模型</label><select id="character-editor-backup-model"></select></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">保存</button></div></div></div>
+    <div id="ai-character-selector-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">选择发言角色</div><div class="modal-body" id="ai-character-selector"></div><div class="modal-footer"><button class="cancel-btn">取消</button></div></div></div>
+    <div id="message-action-menu" class="modal-overlay"><div class="modal-content"><div class="modal-body"><button id="multi-select-btn">☑️ 多选</button><button id="edit-message-btn">✏️ 编辑</button><button id="edit-ai-message-btn">✏️ 编辑</button><button id="copy-message-btn">📋 复制</button><button id="delete-message-btn" class="danger">🗑️ 删除</button></div><div class="modal-footer" style="padding-top:0;"><button class="cancel-btn" style="width:100%;">取消</button></div></div></div>
+    <div id="schedule-detail-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">日程详情</div><div class="modal-body"><div class="detail-row"><div class="detail-label">标题</div><div class="detail-value" id="detail-title"></div></div><div class="detail-row"><div class="detail-label">说明</div><div class="detail-value" id="detail-description"></div></div><div class="detail-row"><div class="detail-label">重要程度</div><div class="detail-value" id="detail-importance"></div></div><div class="detail-row"><div class="detail-label">截止日期</div><div class="detail-value" id="detail-deadline"></div></div><div class="detail-row"><div class="detail-label">事件类型</div><div class="detail-value" id="detail-type"></div></div></div><div class="modal-footer"><button class="cancel-btn" id="edit-schedule-btn">编辑</button><button class="cancel-btn" style="background-color: var(--expense-color); color: white;" id="delete-schedule-btn">删除</button><button class="cancel-btn" id="close-schedule-detail-modal">关闭</button></div></div></div>
+    <div id="cropper-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">裁剪头像</div><div class="modal-body"><div id="cropper-image-container"><img id="cropper-image"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">确定</button></div></div></div>
+    <div id="currency-list-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">管理币种</div><div class="modal-body"><div id="currency-list"></div><button class="form-button" id="add-currency-btn">＋ 添加新币种</button></div><div class="modal-footer"><button class="cancel-btn" id="close-currency-list-modal">关闭</button></div></div></div>
+    <div id="currency-editor-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header" id="currency-editor-title">编辑币种</div><div class="modal-body"><div class="form-group"><label>币种代码 (3位大写字母)</label><input type="text" id="currency-editor-code" placeholder="例如: HKD, USD" maxlength="3" style="text-transform:uppercase;"></div><div class="form-group"><label>币种名称</label><input type="text" id="currency-editor-name" placeholder="例如: 港币, 美元"></div><div class="form-group"><label>对 RMB 的汇率 (1 币种 = ? RMB)</label><input type="number" id="currency-editor-rate" placeholder="例如: 0.92"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">保存</button></div></div></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const db = new Dexie('WarmBookkeepingDB_v8');
+        db.version(8).stores({
+            appConfig: 'id',
+            transactions: '++id, timestamp, type, category, amount, currency, remark',
+            messages: '++id, timestamp, role, content, type, senderId, relatedId',
+            apiProxies: '++id, name, url, apiKey, models',
+            aiCharacters: '++id, name, prompt, avatar, proxyId, model, backupProxyId, backupModel',
+            currencies: 'code, name, rate',
+            schedules: '++id, timestamp, title, description, importance, deadline, eventType, completed'
+        });
+
+        let state = {
+            config: {}, proxies: [], characters: [], messages: [], transactions: [], currencies: [], schedules: [],
+            currentTransaction: { type: 'expense', category: null, amountStr: '0', currency: 'RMB' },
+            currentSchedule: {},
+            calendarState: { year: new Date().getFullYear(), month: new Date().getMonth(), selectedDate: null },
+            isSelectionMode: false,
+            selectedMessages: new Set(),
+            currentlyEditingMsgId: null,
+            currentlyEditingScheduleId: null,
+        };
+        
+        const ELS = {
+            body: document.body,
+            app: document.getElementById('app-container'), pages: document.querySelectorAll('.page'), navItems: document.querySelectorAll('.nav-item'),
+            chatHeaderTitle: document.getElementById('chat-header-title'), chatAvatar: document.getElementById('setting-chat-avatar-preview'),
+            chatMessages: document.getElementById('chat-messages'), chatInput: document.getElementById('chat-input'), sendBtn: document.getElementById('send-btn'),
+            accountingScreen: document.getElementById('accounting-screen'), transactionPanel: document.getElementById('transaction-panel'),
+            schedulePanel: document.getElementById('schedule-panel'),
+            amountDisplay: document.getElementById('amount-display'), categorySelector: document.getElementById('category-selector'),
+            ledgerList: document.getElementById('ledger-list'), ledgerSummary: document.getElementById('ledger-summary'),
+            ledgerFilterCategory: document.getElementById('ledger-filter-category'), ledgerSort: document.getElementById('ledger-sort'),
+            ledgerCurrency: document.getElementById('ledger-currency'),
+            themeSelectors: document.querySelectorAll('input[name="theme"]'),
+            sidebar: document.getElementById('chat-sidebar'),
+            sidebarOverlay: document.getElementById('sidebar-overlay'),
+            chatSettingsBtn: document.getElementById('chat-settings-btn'),
+            sidebarTokenCount: document.getElementById('sidebar-token-count'),
+            previewContextBtn: document.getElementById('preview-context-btn'),
+            sidebarPreviewContent: document.getElementById('sidebar-preview-content'),
+            plusMenu: document.getElementById('plus-menu'),
+        };
+
+        const CATEGORIES = {
+            expense: [ { id: 'food', name: '餐饮美食', icon: '🍔' }, { id: 'shopping', name: '购物消费', icon: '🛍️' }, { id: 'transport', name: '交通出行', icon: '🚌' }, { id: 'entertainment', name: '文化娱乐', icon: '🎬' }, { id: 'games', name: '游戏相关', icon: '🎮' }, { id: 'housing', name: '居家生活', icon: '🏠' }, { id: 'medical', name: '医疗健康', icon: '💊' }, { id: 'social', name: '人情往来', icon: '🎁' }, { id: 'study', name: '学习提升', icon: '📚' }, { id: 'other', name: '其他支出', icon: '💸' }, ],
+            income: [ { id: 'salary', name: '工资', icon: '💼' }, { id: 'bonus', name: '奖金', icon: '🧧' }, { id: 'investment', name: '理财', icon: '📈' }, { id: 'part-time', name: '兼职', icon: '💪' }, { id: 'other', name: '其他收入', icon: '💰' }, ]
+        };
+        const DEFAULT_AVATAR = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9IiNGQUUxRDUiLz48cGF0aCBkPSJNNzIgMzVBNiA2IDAgMSAwIDYwIDM1IDYgNiAwIDAgMCA3MiAzNW0tNDQgMEE2IDYgMCAxIDAgMTYgMzUgNiA2IDAgMCAwIDI4IDM1TTMzIDYwYTQwIDQwIDAgMCAwIDM0IDBjLTEuNS05LTcuNS0xNS0xNy0xNVMzNC41IDUxIDMzIDYwWiIgZmlsbD0iIzhDN0I3MyIvPjwvc3ZnPg==';
+
+        async function init() {
+            await loadDataFromDB();
+            setupEventListeners();
+            navigateTo('accounting-screen');
+            renderChatMessages();
+            renderLedger();
+            renderSchedules();
+            applyConfigToUI();
+            updateSendButtonState();
+            populateLedgerCurrencyFilter();
+        }
+
+        async function loadDataFromDB() {
+            const [config, proxies, characters, messages, transactions, currencies, schedules] = await Promise.all([
+                db.appConfig.get('main'), db.apiProxies.toArray(), db.aiCharacters.toArray(), db.messages.orderBy('timestamp').toArray(), db.transactions.orderBy('timestamp').toArray(), db.currencies.toArray(), db.schedules.toArray(),
+            ]);
+            state.config = config || { id: 'main', chatName: 'Cava记事本1.0beta', chatAvatar: DEFAULT_AVATAR, maxTokens: 4096, background: '', theme: 'default', userId: '', userGender: '', userBio: '' };
+            state.proxies = proxies; state.characters = characters; state.messages = messages; state.transactions = transactions; state.schedules = schedules || [];
+            
+            if (currencies.length === 0) {
+                const preset = { code: 'HKD', name: '港币', rate: 0.92 };
+                await db.currencies.put(preset);
+                state.currencies = [preset];
+            } else {
+                state.currencies = currencies;
+            }
+        }
+
+        function applyConfigToUI() {
+            ELS.chatHeaderTitle.textContent = state.config.chatName;
+            document.getElementById('setting-chat-name').value = state.config.chatName;
+            ELS.chatAvatar.src = state.config.chatAvatar || DEFAULT_AVATAR;
+            document.getElementById('max-tokens-input').value = state.config.maxTokens;
+            ELS.body.dataset.theme = state.config.theme || 'default';
+            document.querySelector(`input[name="theme"][value="${state.config.theme || 'default'}"]`).checked = true;
+            ELS.accountingScreen.style.backgroundImage = state.config.background ? `url(${state.config.background})` : 'none';
+            document.getElementById('setting-user-id').value = state.config.userId || '';
+            document.getElementById('setting-user-gender').value = state.config.userGender || '';
+            document.getElementById('setting-user-bio').value = state.config.userBio || '';
+        }
+        
+        async function saveAllSettings() {
+            state.config.chatName = document.getElementById('setting-chat-name').value;
+            state.config.chatAvatar = ELS.chatAvatar.src;
+            state.config.userId = document.getElementById('setting-user-id').value;
+            state.config.userGender = document.getElementById('setting-user-gender').value;
+            state.config.userBio = document.getElementById('setting-user-bio').value;
+            state.config.theme = document.querySelector('input[name="theme"]:checked').value;
+            state.config.maxTokens = parseInt(document.getElementById('max-tokens-input').value) || 4096;
+            
+            await db.appConfig.put(state.config);
+            applyConfigToUI();
+            renderChatMessages();
+            alert('设置已保存！');
+        }
+
+        function navigateTo(pageId) { 
+            ELS.pages.forEach(p => p.classList.remove('active')); 
+            document.getElementById(pageId)?.classList.add('active'); 
+            ELS.navItems.forEach(item => item.classList.toggle('active', item.dataset.page === pageId)); 
+            if (pageId === 'ledger-screen') renderLedger(); 
+            if (pageId === 'schedule-screen') renderSchedules();
+        }
+
+        function setupEventListeners() {
+            ELS.navItems.forEach(item => item.addEventListener('click', () => navigateTo(item.dataset.page)));
+            document.getElementById('save-all-settings-btn').addEventListener('click', saveAllSettings);
+            
+            document.getElementById('upload-user-avatar-btn').addEventListener('click', () => document.getElementById('setting-chat-avatar-input').click());
+            document.getElementById('setting-chat-avatar-input').addEventListener('change', (e) => {
+                handleAvatarUpload(e, (base64) => { ELS.chatAvatar.src = base64; });
+            });
+            
+            document.getElementById('setting-chat-bg-input').addEventListener('change', async (e) => { if (!e.target.files[0]) return; const base64 = await fileToBase64(e.target.files[0]); state.config.background = base64; await db.appConfig.put(state.config); applyConfigToUI(); });
+            document.getElementById('remove-bg-btn').addEventListener('click', async () => { state.config.background = ''; await db.appConfig.put(state.config); applyConfigToUI(); });
+            ELS.chatInput.addEventListener('input', updateSendButtonState);
+            ELS.sendBtn.addEventListener('click', sendUserMessage);
+            
+            document.getElementById('plus-btn').addEventListener('click', togglePlusMenu);
+            document.getElementById('add-transaction-btn').addEventListener('click', () => { hidePlusMenu(); showTransactionPanel(); });
+            document.getElementById('add-schedule-btn').addEventListener('click', () => { hidePlusMenu(); showSchedulePanel(); });
+            
+            document.getElementById('ai-trigger-btn').addEventListener('click', showAICharacterSelector);
+            document.getElementById('image-upload-btn').addEventListener('click', () => document.getElementById('image-upload-input').click());
+            document.getElementById('image-upload-input').addEventListener('change', sendUserImage);
+            document.getElementById('close-transaction-panel').addEventListener('click', hideTransactionPanel);
+            document.getElementById('close-schedule-panel').addEventListener('click', hideSchedulePanel);
+            document.getElementById('type-expense-btn').addEventListener('click', () => switchTransactionType('expense'));
+            document.getElementById('type-income-btn').addEventListener('click', () => switchTransactionType('income'));
+            document.querySelector('.numpad').addEventListener('click', handleNumpad);
+            document.getElementById('numpad-delete').addEventListener('click', handleNumpadDelete);
+            document.getElementById('numpad-confirm').addEventListener('click', confirmTransaction);
+            document.getElementById('currency-selector').addEventListener('click', toggleCurrency);
+            
+            setupSchedulePanelListeners();
+            setupCalendarModalListeners();
+            
+            ELS.ledgerFilterCategory.addEventListener('change', renderLedger);
+            ELS.ledgerSort.addEventListener('change', renderLedger);
+            ELS.ledgerCurrency.addEventListener('change', renderLedger);
+            setupModal('manage-proxies-btn', 'api-proxy-modal', 'close-proxy-modal', renderProxyList);
+            setupModal('manage-characters-btn', 'ai-character-modal', 'close-character-modal', renderCharacterList);
+            setupModal('manage-currencies-btn', 'currency-list-modal', 'close-currency-list-modal', renderCurrencyList);
+            document.getElementById('add-proxy-btn').addEventListener('click', () => openProxyEditor());
+            document.getElementById('add-character-btn').addEventListener('click', () => openCharacterEditor());
+            document.getElementById('add-currency-btn').addEventListener('click', () => openCurrencyEditor());
+            setupEditorModal('proxy-editor-modal', saveProxy);
+            setupEditorModal('character-editor-modal', saveCharacter);
+            setupEditorModal('currency-editor-modal', saveCurrency);
+            setupEditorModal('cropper-modal', null); 
+            setupModal(null, 'ai-character-selector-modal', null, null);
+            setupModal(null, 'message-action-menu', null);
+            
+            const scheduleDetailModal = document.getElementById('schedule-detail-modal');
+            scheduleDetailModal.querySelector('#close-schedule-detail-modal').addEventListener('click', () => scheduleDetailModal.classList.remove('visible'));
+            scheduleDetailModal.querySelector('#edit-schedule-btn').addEventListener('click', handleEditScheduleFromModal);
+            scheduleDetailModal.querySelector('#delete-schedule-btn').addEventListener('click', handleDeleteScheduleFromModal);
+
+            document.getElementById('export-json-btn').addEventListener('click', exportAsJSON);
+            document.getElementById('import-json-btn').addEventListener('click', () => document.getElementById('import-json-input').click());
+            document.getElementById('import-json-input').addEventListener('change', importFromJSON);
+            document.getElementById('export-txt-btn').addEventListener('click', exportAsTXT);
+            ELS.themeSelectors.forEach(radio => radio.addEventListener('change', (e) => { ELS.body.dataset.theme = e.target.value; }));
+            
+            ELS.chatSettingsBtn.addEventListener('click', toggleSidebar);
+            ELS.sidebarOverlay.addEventListener('click', toggleSidebar);
+            ELS.previewContextBtn.addEventListener('click', toggleContextPreview);
+            
+            document.getElementById('cancel-selection-btn').addEventListener('click', exitSelectionMode);
+            document.getElementById('delete-selected-btn').addEventListener('click', deleteSelectedMessages);
+            
+            document.addEventListener('click', (e) => { if (!e.target.closest('#plus-btn') && !e.target.closest('#plus-menu')) { hidePlusMenu(); } });
+        }
+        
+        function togglePlusMenu() { ELS.plusMenu.classList.toggle('visible'); }
+        function hidePlusMenu() { ELS.plusMenu.classList.remove('visible'); }
+        
+        function updateSendButtonState() { const hasText = ELS.chatInput.value.trim().length > 0; const hasTransaction = state.currentTransaction.amountStr !== '0'; ELS.sendBtn.disabled = !hasText && !hasTransaction; }
+
+        async function sendUserMessage() {
+            if (ELS.sendBtn.disabled) return;
+            const remark = ELS.chatInput.value.trim();
+            const amount = parseFloat(state.currentTransaction.amountStr);
+            if (amount > 0) {
+                const newTransaction = { timestamp: Date.now(), type: state.currentTransaction.type, category: state.currentTransaction.category, amount: amount, currency: state.currentTransaction.currency, remark: remark };
+                const transId = await db.transactions.add(newTransaction);
+                const msgId = await db.messages.add({ timestamp: newTransaction.timestamp, role: 'user', content: ``, type: 'transaction', relatedId: transId });
+                state.transactions.push({ ...newTransaction, id: transId });
+                state.messages.push({ id: msgId, timestamp: newTransaction.timestamp, role: 'user', type: 'transaction', relatedId: transId });
+                resetTransactionState(); ELS.chatInput.value = ''; updateSendButtonState();
+            } else if (remark) {
+                const newMsg = { timestamp: Date.now(), role: 'user', content: remark, type: 'text' };
+                const id = await db.messages.add(newMsg);
+                state.messages.push({ ...newMsg, id }); ELS.chatInput.value = '';
+            }
+            renderChatMessages();
+        }
+
+        async function sendUserImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const base64 = await fileToBase64(file);
+            const newMsg = { timestamp: Date.now(), role: 'user', content: base64, type: 'image' };
+            const id = await db.messages.add(newMsg);
+            state.messages.push({ ...newMsg, id });
+            renderChatMessages();
+            event.target.value = ''; 
+        }
+
+        async function triggerAIResponse(character) {
+            const proxy = state.proxies.find(p => p.id === character.proxyId);
+            const backupProxy = state.proxies.find(p => p.id === character.backupProxyId);
+            if (!proxy || !character.model) {
+                alert(`角色 "${character.name}" 未配置主用API或模型，无法发言。`);
+                return;
+            }
+
+            const now = new Date();
+            const formattedDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            let userProfileString = '';
+            if (state.config.userId || state.config.userGender || state.config.userBio) {
+                userProfileString += "[User Profile]\n";
+                if (state.config.userId) userProfileString += `- ID: ${state.config.userId}\n`;
+                if (state.config.userGender) userProfileString += `- Gender: ${state.config.userGender}\n`;
+                if (state.config.userBio) userProfileString += `- Bio: ${state.config.userBio}\n`;
+                userProfileString += '\n';
+            }
+
+            const systemPrefix = `${userProfileString}[System Info]\n- Current Model: ${character.model}\n- Current Time: ${formattedDateTime}\n- Your Role: ${character.name}\n\n---\n\n`;
+            const systemPrompt = systemPrefix + `${character.prompt}\n\n你的任务是作为聊天伙伴对用户的记账和聊天内容做出回应。你的回应需要符合你的人设。如果用户发了图片，你要像能看到一样进行评论。请自然地进行对话。你可以一次性发送多条消息，用 // 分隔。例如: "你好呀//今天过得怎么样？"。`;
+            const history = buildContext(state.config.maxTokens || 4096).context;
+            const thinkingBubbleId = addThinkingBubble(character);
+            
+            let responseText;
+            try {
+                responseText = await callAPI(proxy, systemPrompt, history, character.model);
+                await processAIResponse(responseText, thinkingBubbleId, character);
+            } catch (mainError) {
+                console.error("Main API failed:", mainError);
+                if (backupProxy && character.backupModel) {
+                    console.log("Main API failed, trying backup API...");
+                    
+                    const thinkingBubble = document.getElementById(thinkingBubbleId);
+                    if (thinkingBubble) {
+                        const contentEl = thinkingBubble.querySelector('.content-text');
+                        if (contentEl) contentEl.innerHTML = '主用API报错，正在尝试备用API...';
+                    }
+                    
+                    try {
+                        await new Promise(resolve => setTimeout(resolve, 1000)); 
+                        const backupSystemPrefix = `${userProfileString}[System Info]\n- Current Model: ${character.backupModel}\n- Current Time: ${formattedDateTime}\n- Your Role: ${character.name}\n\n---\n\n`;
+                        const backupSystemPrompt = backupSystemPrefix + `${character.prompt}\n\n你的任务是作为聊天伙伴对用户的记账和聊天内容做出回应。你的回应需要符合你的人设。如果用户发了图片，你要像能看到一样进行评论。请自然地进行对话。你可以一次性发送多条消息，用 // 分隔。例如: "你好呀//今天过得怎么样？"。`;
+                        responseText = await callAPI(backupProxy, backupSystemPrompt, history, character.backupModel);
+                        await processAIResponse(responseText, thinkingBubbleId, character);
+                    } catch (backupError) {
+                        console.error("Backup API also failed:", backupError);
+                        await updateThinkingBubble(thinkingBubbleId, `[备用API连接失败: ${backupError.message}]`, character.id, true);
+                    }
+                } else {
+                    await updateThinkingBubble(thinkingBubbleId, `[连接失败: ${mainError.message}]`, character.id, true);
+                }
+            }
+        }
+        
+        async function processAIResponse(text, bubbleId, character) {
+            const aiReplies = text.split('//').map(r => r.trim()).filter(Boolean);
+            if (aiReplies.length > 0) {
+                await updateThinkingBubble(bubbleId, aiReplies[0], character.id);
+                for (let i = 1; i < aiReplies.length; i++) {
+                    await new Promise(resolve => setTimeout(resolve, Math.random() * 600 + 200));
+                    await addAIMessage(aiReplies[i], character.id);
+                }
+            } else { await updateThinkingBubble(bubbleId, "[AI没有返回任何内容]", character.id, true); }
+        }
+        
+        function buildContext(maxTokens) {
+            let context = []; let currentTokens = 0; const reversedMessages = [...state.messages].reverse();
+            for (const msg of reversedMessages) {
+                let content; let msgTokens = 0;
+                const role = msg.role === 'assistant' ? 'assistant' : 'user';
+
+                if (msg.type === 'transaction') {
+                    const t = state.transactions.find(t => t.id === msg.relatedId);
+                    if(!t) continue;
+                    content = `[记账提醒] 我${t.type === 'expense' ? '花了' : '赚了'} ${t.amount}${t.currency}，分类是${CATEGORIES[t.type].find(c=>c.id===t.category)?.name || '未知'}，备注是：“${t.remark}”`;
+                    msgTokens = content.length * 2;
+                } else if (msg.type === 'schedule') {
+                    const s = state.schedules.find(s => s.id === msg.relatedId);
+                    if(!s) continue;
+                    const deadlineStr = s.deadline ? formatDeadline(s.deadline) : '无';
+                    content = `[日程提醒] 我定了个事：'${s.title}'。重要程度是 ${s.importance.toFixed(1)}/10，截止日期是 ${deadlineStr}。`;
+                    msgTokens = content.length * 2;
+                } else if (msg.type === 'image') {
+                    content = [{ type: "image_url", image_url: { url: msg.content } }];
+                    msgTokens = 1000; 
+                } else {
+                    content = msg.content;
+                    msgTokens = content.length * 2;
+                }
+                
+                if (currentTokens + msgTokens <= maxTokens) {
+                    const finalRole = (msg.type === 'transaction' || msg.type === 'image' || msg.type === 'schedule') ? 'user' : role;
+                    const messageForContext = { role: finalRole, content };
+                    
+                    if (finalRole === 'assistant' && msg.senderId) {
+                        const character = state.characters.find(c => c.id === msg.senderId);
+                        if (character) {
+                            messageForContext.character_name = character.name;
+                        }
+                    }
+                    
+                    context.unshift(messageForContext);
+                    currentTokens += msgTokens;
+                } else {
+                    break;
+                }
+            }
+            return { context, tokens: currentTokens };
+        }
+
+        async function callAPI(proxy, systemPrompt, history, model) {
+            const res = await fetch(`${proxy.url}/v1/chat/completions`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${proxy.apiKey}` }, 
+                body: JSON.stringify({ 
+                    model: model, 
+                    messages: [{ role: 'system', content: systemPrompt }, ...history], 
+                    temperature: 0.8 
+                }) 
+            });
+            if (!res.ok) { 
+                const errorText = await res.text();
+                let errorMessage = '未知API错误';
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    errorMessage = errorJson.error.message || errorText;
+                } catch(e) {
+                    errorMessage = errorText;
+                }
+                throw new Error(errorMessage);
+            }
+            const data = await res.json();
+            return data.choices[0].message.content;
+        }
+
+        async function addAIMessage(content, senderId = null) {
+            const newMsg = { timestamp: Date.now(), role: 'assistant', content, type: 'text', senderId };
+            const id = await db.messages.add(newMsg);
+            state.messages.push({ ...newMsg, id });
+            renderChatMessages();
+        }
+
+        function addThinkingBubble(character) {
+            const bubbleId = `thinking-${Date.now()}`;
+            const wrapper = createMessageElement({ id: bubbleId, role: 'assistant', type: 'text', senderId: character.id, content: `<div class="typing-indicator"><span>.</span><span>.</span><span>.</span></div>` });
+            ELS.chatMessages.appendChild(wrapper); ELS.chatMessages.scrollTop = ELS.chatMessages.scrollHeight;
+            return bubbleId;
+        }
+
+        async function updateThinkingBubble(bubbleId, content, senderId, isError = false) {
+            const newMsgData = { timestamp: Date.now(), role: 'assistant', content, type: 'text', senderId };
+            const newId = await db.messages.add(newMsgData);
+            state.messages.push({ ...newMsgData, id: newId });
+            const bubbleWrapper = document.getElementById(bubbleId);
+            if (bubbleWrapper) { const newBubble = createMessageElement({ ...newMsgData, id: newId }, isError); bubbleWrapper.parentElement.replaceChild(newBubble, bubbleWrapper); }
+            state.messages = state.messages.filter(m => m.id !== bubbleId);
+        }
+
+        function parseSimpleMarkdown(text) {
+            if (!text) return '';
+            let escapedText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            escapedText = escapedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            escapedText = escapedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            escapedText = escapedText.replace(/\n/g, '<br>');
+            return escapedText;
+        }
+
+        function createMessageElement(msg, isError = false) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${msg.role === 'user' ? 'user' : 'ai'}`;
+            if (isError) wrapper.classList.add('error');
+            wrapper.id = msg.id;
+            wrapper.dataset.id = msg.id;
+
+            const checkbox = document.createElement('div');
+            checkbox.className = 'message-selection-checkbox';
+            checkbox.innerHTML = '✓';
+            wrapper.appendChild(checkbox);
+
+            wrapper.addEventListener('click', (e) => {
+                if (state.isSelectionMode) {
+                    e.stopPropagation();
+                    toggleMessageSelection(msg.id);
+                }
+            });
+            
+            let character = msg.senderId ? state.characters.find(c => c.id === msg.senderId) : null;
+
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            avatar.src = msg.role === 'user' ? (state.config.chatAvatar || DEFAULT_AVATAR) : (character ? character.avatar : DEFAULT_AVATAR);
+            
+            const messageBlock = document.createElement('div');
+            messageBlock.className = 'message-block';
+
+            if (msg.role === 'assistant' && character) {
+                const senderName = document.createElement('div');
+                senderName.className = 'sender-name';
+                senderName.textContent = character.name;
+                messageBlock.appendChild(senderName);
+            }
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.classList.add(msg.type);
+
+            const contentContainer = document.createElement('div');
+            contentContainer.className = 'content';
+            
+            if (msg.type === 'transaction') {
+                const t = state.transactions.find(t => t.id === msg.relatedId);
+                if (!t) return wrapper;
+                const category = CATEGORIES[t.type].find(c => c.id === t.category);
+                const remarkText = t.remark || '没有备注哦~';
+                contentContainer.innerHTML = `<div class="transaction-card"><div class="transaction-header ${t.type}"><div class="icon">${category?.icon||'🤔'}</div><div class="category-name">${category?.name||'未知分类'}</div></div><div class="transaction-body"><div class="transaction-amount">${t.type==='expense'?'-':'+'}${t.amount.toFixed(2)}<span class="currency-label">${t.currency}</span></div><div class="transaction-remark"><span class="original-text">${remarkText}</span></div></div></div>`;
+            } else if (msg.type === 'schedule') {
+                const s = state.schedules.find(s => s.id === msg.relatedId);
+                if (!s) return wrapper;
+                const deadlineStr = s.deadline ? formatDeadline(s.deadline) : '无';
+                contentContainer.innerHTML = `<div class="schedule-card"><div class="schedule-header"><div class="icon">🏷️</div><div class="type-name">${s.eventType==='long'?'长期事件':'单次事件'}</div></div><div class="schedule-body"><div class="schedule-title">${s.title}</div><div class="schedule-importance">重要程度: ${s.importance.toFixed(1)}</div><div class="schedule-deadline">截止: ${deadlineStr}</div>${s.description?`<div class="schedule-description"><span class="original-text">${s.description}</span></div>`:''}</div></div>`;
+            } else if (msg.type === 'image') {
+                contentContainer.innerHTML = `<img src="${msg.content}" class="chat-image" alt="用户发送的图片">`;
+            } else { 
+                const contentSpan = document.createElement('span');
+                contentSpan.className = 'content-text';
+                contentSpan.innerHTML = msg.id.toString().startsWith('thinking-') ? msg.content : parseSimpleMarkdown(msg.content);
+                contentContainer.appendChild(contentSpan);
+            }
+            
+            const metaContainer = document.createElement('div');
+            metaContainer.className = 'message-meta';
+            const timestamp = document.createElement('span');
+            timestamp.className = 'timestamp';
+            timestamp.textContent = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            const menuTrigger = document.createElement('span');
+            menuTrigger.className = 'message-actions-trigger';
+            menuTrigger.innerHTML = '⋮';
+            menuTrigger.addEventListener('click', (e) => { e.stopPropagation(); cancelCurrentEdit(); showActionMenu(msg.id); });
+            metaContainer.append(timestamp, menuTrigger);
+
+            bubble.append(contentContainer, metaContainer);
+            messageBlock.appendChild(bubble);
+
+            if (msg.role === 'user') {
+                wrapper.append(messageBlock, avatar);
+            } else {
+                wrapper.append(avatar, messageBlock);
+            }
+            
+            return wrapper;
+        }
+
+        function renderChatMessages(shouldScrollToBottom = true) {
+            const lastScrollTop = ELS.chatMessages.scrollTop;
+            const lastScrollHeight = ELS.chatMessages.scrollHeight;
+            const isScrolledToBottom = lastScrollHeight - lastScrollTop - ELS.chatMessages.clientHeight < 1;
+
+            ELS.chatMessages.innerHTML = '';
+            state.messages.forEach(msg => {
+                if (!msg.id.toString().startsWith('thinking-')) {
+                    ELS.chatMessages.appendChild(createMessageElement(msg));
+                }
+            });
+
+            if (shouldScrollToBottom || isScrolledToBottom) {
+                ELS.chatMessages.scrollTop = ELS.chatMessages.scrollHeight;
+            } else {
+                ELS.chatMessages.scrollTop = lastScrollTop;
+            }
+        }
+        
+        function renderLedger() {
+            const filter = ELS.ledgerFilterCategory.value;
+            const sort = ELS.ledgerSort.value;
+            const displayCurrency = ELS.ledgerCurrency.value;
+            
+            const allCurrencies = [{code: 'RMB', rate: 1}, ...state.currencies];
+            const toRate = allCurrencies.find(c => c.code === displayCurrency)?.rate || 1;
+
+            let filtered = state.transactions.map(t => {
+                const fromRate = allCurrencies.find(c => c.code === t.currency)?.rate || 1;
+                const amountInRMB = t.amount * fromRate;
+                const displayAmount = amountInRMB / toRate;
+                return { ...t, displayAmount };
+            });
+
+            if (filter !== 'all') { filtered = filtered.filter(t => t.category === filter); } 
+            
+            filtered.sort((a, b) => { 
+                switch(sort) { 
+                    case 'time_asc': return a.timestamp - b.timestamp; 
+                    case 'amount_desc': return b.displayAmount - a.displayAmount; 
+                    case 'amount_asc': return a.displayAmount - b.displayAmount; 
+                    default: return b.timestamp - a.timestamp; 
+                } 
+            }); 
+            
+            ELS.ledgerList.innerHTML = ''; 
+            let totalExpense = 0, totalIncome = 0; 
+            
+            if (filtered.length === 0) { 
+                ELS.ledgerList.innerHTML = '<li class="empty-state">这里空空如也，快去记一笔吧！</li>'; 
+            } else { 
+                filtered.forEach(t => { 
+                    if (t.type === 'expense') totalExpense += t.displayAmount; 
+                    else totalIncome += t.displayAmount; 
+                    
+                    const category = CATEGORIES[t.type].find(c => c.id === t.category); 
+                    const li = document.createElement('li'); 
+                    li.className = 'ledger-item'; 
+                    li.innerHTML = `<div class="icon">${category?.icon || '🤔'}</div><div class="details"><div class="remark">${t.remark || category?.name || '一笔账'}</div><div class="time">${new Date(t.timestamp).toLocaleString()}</div></div><div class="amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.displayAmount.toFixed(2)}</div>`; 
+                    ELS.ledgerList.appendChild(li); 
+                }); 
+            } 
+            ELS.ledgerSummary.innerHTML = `总支出 (${displayCurrency}): <span style="color:var(--expense-color)">${totalExpense.toFixed(2)}</span> | 总收入 (${displayCurrency}): <span style="color:var(--income-color)">${totalIncome.toFixed(2)}</span>`;
+        }
+        function populateLedgerFilter() { ELS.ledgerFilterCategory.innerHTML = '<option value="all">所有分类</option>'; const allCats = [...CATEGORIES.expense, ...CATEGORIES.income]; const uniqueCats = [...new Map(allCats.map(item => [item.id, item])).values()]; uniqueCats.forEach(cat => { const option = document.createElement('option'); option.value = cat.id; option.textContent = cat.name; ELS.ledgerFilterCategory.appendChild(option); }); }
+        
+        function populateLedgerCurrencyFilter() {
+            const select = ELS.ledgerCurrency;
+            select.innerHTML = '';
+            const allCurrenciesForFilter = [{code: 'RMB', name: '人民币'}, ...state.currencies];
+            allCurrenciesForFilter.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.code;
+                option.textContent = `${c.name} (${c.code})`;
+                select.appendChild(option);
+            });
+            select.value = 'RMB';
+        }
+        populateLedgerFilter();
+        
+        function showActionMenu(msgId) {
+            const menu = document.getElementById('message-action-menu');
+            const msg = state.messages.find(m => m.id === msgId);
+            if (!msg) return;
+
+            document.getElementById('multi-select-btn').onclick = () => { menu.classList.remove('visible'); enterSelectionMode(); };
+            
+            const editUserBtn = document.getElementById('edit-message-btn');
+            const editAiBtn = document.getElementById('edit-ai-message-btn');
+            const copyBtn = document.getElementById('copy-message-btn');
+            const deleteBtn = document.getElementById('delete-message-btn');
+
+            const isUserText = msg.role === 'user' && msg.type === 'text';
+            const isUserTransaction = msg.role === 'user' && msg.type === 'transaction';
+            const isUserSchedule = msg.role === 'user' && msg.type === 'schedule';
+            const isAiText = msg.role === 'assistant' && msg.type === 'text';
+            const isCopyable = isUserText || isAiText || (isUserTransaction && state.transactions.find(t => t.id === msg.relatedId)?.remark) || (isUserSchedule && state.schedules.find(s => s.id === msg.relatedId)?.description);
+
+            editUserBtn.style.display = (isUserText || isUserTransaction || isUserSchedule) ? 'block' : 'none';
+            if (isUserTransaction) editUserBtn.innerHTML = '✏️ 编辑备注';
+            else if (isUserSchedule) editUserBtn.innerHTML = '✏️ 编辑说明';
+            else editUserBtn.innerHTML = '✏️ 编辑';
+            
+            editAiBtn.style.display = isAiText ? 'block' : 'none';
+            copyBtn.style.display = isCopyable ? 'block' : 'none';
+
+            editUserBtn.onclick = () => { menu.classList.remove('visible'); editMessage(msgId); };
+            editAiBtn.onclick = () => { menu.classList.remove('visible'); editMessage(msgId); };
+            copyBtn.onclick = () => { menu.classList.remove('visible'); copyMessage(msgId); };
+            deleteBtn.onclick = () => { menu.classList.remove('visible'); deleteMessage(msgId); };
+            
+            menu.classList.add('visible');
+        }
+
+        function cancelCurrentEdit() {
+            if (!state.currentlyEditingMsgId) return;
+            const msgElement = document.getElementById(state.currentlyEditingMsgId);
+            if (msgElement) {
+                const bubble = msgElement.querySelector('.message-bubble');
+                if (bubble) bubble.classList.remove('editing');
+                const editContainer = msgElement.querySelector('.inline-edit-container');
+                if (editContainer) editContainer.remove();
+            }
+            state.currentlyEditingMsgId = null;
+        }
+
+        async function editMessage(msgId) {
+            cancelCurrentEdit(); 
+            state.currentlyEditingMsgId = msgId;
+
+            const msgIndex = state.messages.findIndex(m => m.id === msgId);
+            if (msgIndex === -1) return;
+            const msg = state.messages[msgIndex];
+
+            const msgElement = document.getElementById(msgId);
+            if (!msgElement) return;
+
+            const bubble = msgElement.querySelector('.message-bubble');
+            let targetContainer, originalText;
+
+            if (msg.type === 'transaction') {
+                targetContainer = msgElement.querySelector('.transaction-remark');
+                originalText = state.transactions.find(t => t.id === msg.relatedId)?.remark || '';
+            } else if (msg.type === 'schedule') {
+                targetContainer = msgElement.querySelector('.schedule-description');
+                originalText = state.schedules.find(s => s.id === msg.relatedId)?.description || '';
+            } else if (msg.type === 'text') {
+                targetContainer = msgElement.querySelector('.content-text').parentElement;
+                originalText = msg.content;
+            } else {
+                return; 
+            }
+            if (!targetContainer) { 
+                alert("此项目没有可编辑的文本。");
+                cancelCurrentEdit();
+                return;
+            }
+
+            bubble.classList.add('editing');
+
+            const editContainer = document.createElement('div');
+            editContainer.className = 'inline-edit-container';
+            
+            const textarea = document.createElement('textarea');
+            textarea.className = 'inline-edit-textarea';
+            textarea.value = originalText.replace(/<br>/g, '\n');
+            
+            const autoResizeTextarea = () => {
+                textarea.style.height = 'auto';
+                textarea.style.height = `${textarea.scrollHeight}px`;
+            };
+            textarea.addEventListener('input', autoResizeTextarea);
+            
+            const actions = document.createElement('div');
+            actions.className = 'inline-edit-actions';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.innerHTML = '✓';
+            saveBtn.className = 'save';
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.innerHTML = '×';
+            cancelBtn.className = 'cancel';
+            
+            actions.append(saveBtn, cancelBtn);
+            editContainer.append(textarea, actions);
+            targetContainer.append(editContainer);
+
+            autoResizeTextarea();
+            textarea.focus();
+            textarea.select();
+
+            cancelBtn.onclick = (e) => { e.stopPropagation(); cancelCurrentEdit(); renderChatMessages(false); };
+
+            saveBtn.onclick = async (e) => {
+                e.stopPropagation();
+                const newText = textarea.value.trim();
+                
+                if (msg.type === 'transaction') {
+                    const trans = state.transactions.find(t => t.id === msg.relatedId);
+                    if (trans) trans.remark = newText;
+                    await db.transactions.update(msg.relatedId, { remark: newText });
+                    if (document.getElementById('ledger-screen').classList.contains('active')) renderLedger();
+                } else if (msg.type === 'schedule') {
+                    const schedule = state.schedules.find(s => s.id === msg.relatedId);
+                    if(schedule) schedule.description = newText;
+                    await db.schedules.update(msg.relatedId, { description: newText });
+                    if (document.getElementById('schedule-screen').classList.contains('active')) renderSchedules();
+                } else if (msg.type === 'text') {
+                    state.messages[msgIndex].content = newText;
+                    await db.messages.update(msgId, { content: newText });
+                }
+                
+                state.currentlyEditingMsgId = null; 
+                renderChatMessages(false);
+            };
+        }
+
+        async function deleteMessage(msgId) { 
+            if (!confirm('确定要删除这条消息吗？')) return; 
+            const msg = state.messages.find(m => m.id === msgId); 
+            if (!msg) return;
+            if (msg.type === 'transaction' && msg.relatedId) { 
+                await db.transactions.delete(msg.relatedId); 
+                state.transactions = state.transactions.filter(t => t.id !== msg.relatedId); 
+                renderLedger();
+            } else if (msg.type === 'schedule' && msg.relatedId) {
+                await db.schedules.delete(msg.relatedId);
+                state.schedules = state.schedules.filter(s => s.id !== msg.relatedId);
+                renderSchedules();
+            }
+            await db.messages.delete(msgId); 
+            state.messages = state.messages.filter(m => m.id !== msgId); 
+            renderChatMessages(false); 
+        }
+        async function copyMessage(msgId) {
+            const msg = state.messages.find(m => m.id === msgId);
+            if (!msg) return;
+
+            let textToCopy = '';
+            if (msg.type === 'text') {
+                textToCopy = msg.content;
+            } else if (msg.type === 'transaction') {
+                textToCopy = state.transactions.find(t => t.id === msg.relatedId)?.remark || '';
+            } else if (msg.type === 'schedule') {
+                textToCopy = state.schedules.find(s => s.id === msg.relatedId)?.description || '';
+            }
+
+            if (textToCopy && navigator.clipboard) {
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    alert('已复制！');
+                } catch (err) {
+                    console.error('无法复制文本: ', err);
+                    alert('复制失败！');
+                }
+            }
+        }
+
+        function enterSelectionMode() { cancelCurrentEdit(); state.isSelectionMode = true; document.getElementById('accounting-screen').classList.add('selection-mode-active'); }
+        function exitSelectionMode() { state.isSelectionMode = false; document.getElementById('accounting-screen').classList.remove('selection-mode-active'); state.selectedMessages.forEach(id => { document.querySelector(`.message-wrapper[data-id="${id}"]`)?.classList.remove('selected'); }); state.selectedMessages.clear(); }
+        function toggleMessageSelection(msgId) { const wrapper = document.querySelector(`.message-wrapper[data-id="${msgId}"]`); if (state.selectedMessages.has(msgId)) { state.selectedMessages.delete(msgId); wrapper?.classList.remove('selected'); } else { state.selectedMessages.add(msgId); wrapper?.classList.add('selected'); } }
+        async function deleteSelectedMessages() {
+            const count = state.selectedMessages.size;
+            if (count === 0) return;
+            if (!confirm(`确定要删除选中的 ${count} 条消息吗？`)) return;
+
+            const msgIdsToDelete = Array.from(state.selectedMessages);
+            const transIdsToDelete = [];
+            const scheduleIdsToDelete = [];
+
+            for (const msgId of msgIdsToDelete) {
+                const msg = state.messages.find(m => m.id === msgId);
+                if (msg) {
+                    if (msg.type === 'transaction' && msg.relatedId) transIdsToDelete.push(msg.relatedId);
+                    if (msg.type === 'schedule' && msg.relatedId) scheduleIdsToDelete.push(msg.relatedId);
+                }
+            }
+            
+            if (transIdsToDelete.length > 0) await db.transactions.bulkDelete(transIdsToDelete);
+            if (scheduleIdsToDelete.length > 0) await db.schedules.bulkDelete(scheduleIdsToDelete);
+            await db.messages.bulkDelete(msgIdsToDelete);
+            
+            state.transactions = state.transactions.filter(t => !transIdsToDelete.includes(t.id));
+            state.schedules = state.schedules.filter(s => !scheduleIdsToDelete.includes(s.id));
+            state.messages = state.messages.filter(m => !msgIdsToDelete.includes(m.id));
+
+            exitSelectionMode();
+            renderChatMessages(false);
+            renderLedger();
+            renderSchedules();
+        }
+
+        // --- Transaction Panel Logic ---
+        function showTransactionPanel() { resetTransactionState(); switchTransactionType('expense'); ELS.transactionPanel.classList.add('visible'); ELS.app.style.overflow = 'hidden'; }
+        function hideTransactionPanel() { ELS.transactionPanel.classList.remove('visible'); ELS.app.style.overflow = 'initial'; }
+        function switchTransactionType(type) { state.currentTransaction.type = type; document.getElementById('type-expense-btn').classList.toggle('active', type === 'expense'); document.getElementById('type-income-btn').classList.toggle('active', type === 'income'); renderCategories(); }
+        function renderCategories() { ELS.categorySelector.innerHTML = ''; const cats = CATEGORIES[state.currentTransaction.type]; cats.forEach(cat => { const item = document.createElement('div'); item.className = 'category-item'; item.dataset.id = cat.id; item.innerHTML = `<div class="icon">${cat.icon}</div><div class="name">${cat.name}</div>`; item.addEventListener('click', () => selectCategory(cat.id)); ELS.categorySelector.appendChild(item); }); if (cats.length > 0) selectCategory(cats[0].id); }
+        function selectCategory(catId) { state.currentTransaction.category = catId; document.querySelectorAll('.category-item').forEach(item => item.classList.toggle('selected', item.dataset.id === catId)); }
+        function handleNumpad(e) { const key = e.target.dataset.key; if (!key) return; let amount = state.currentTransaction.amountStr; if (key === '.') { if (!amount.includes('.')) amount += '.'; } else { if (amount === '0') amount = key; else if (amount.includes('.') && amount.split('.')[1].length >= 2) return; else amount += key; } state.currentTransaction.amountStr = amount; updateAmountDisplay(); }
+        function handleNumpadDelete() { let amount = state.currentTransaction.amountStr; amount = amount.slice(0, -1); if (amount === '') amount = '0'; state.currentTransaction.amountStr = amount; updateAmountDisplay(); }
+        function toggleCurrency() { const currencies = ['RMB', ...state.currencies.map(c => c.code)]; const currentIndex = currencies.indexOf(state.currentTransaction.currency); const nextIndex = (currentIndex + 1) % currencies.length; const newCurrency = currencies[nextIndex]; state.currentTransaction.currency = newCurrency; document.getElementById('currency-selector').textContent = newCurrency; localStorage.setItem('lastSelectedCurrency', newCurrency); }
+        function updateAmountDisplay() { ELS.amountDisplay.textContent = state.currentTransaction.amountStr; updateSendButtonState(); }
+        function confirmTransaction() { hideTransactionPanel(); sendUserMessage(); }
+        function resetTransactionState() { const lastCurrency = localStorage.getItem('lastSelectedCurrency') || 'RMB'; state.currentTransaction = { type: 'expense', category: null, amountStr: '0', currency: lastCurrency }; updateAmountDisplay(); document.getElementById('currency-selector').textContent = lastCurrency; }
+        
+        // --- Schedule & Calendar Logic ---
+        function setupSchedulePanelListeners() {
+            document.getElementById('schedule-type-once').addEventListener('click', () => setScheduleType('once'));
+            document.getElementById('schedule-type-long').addEventListener('click', () => setScheduleType('long'));
+            setupImportanceStars();
+            document.getElementById('confirm-schedule-btn').addEventListener('click', confirmSchedule);
+            document.getElementById('cancel-schedule-btn').addEventListener('click', hideSchedulePanel);
+            document.getElementById('deadline-display-text').addEventListener('click', showCalendarModal);
+        }
+        function setupCalendarModalListeners() {
+            document.getElementById('close-calendar-btn').addEventListener('click', () => document.getElementById('calendar-modal').classList.remove('visible'));
+            document.getElementById('prev-month-btn').addEventListener('click', () => {
+                state.calendarState.month--;
+                if (state.calendarState.month < 0) {
+                    state.calendarState.month = 11;
+                    state.calendarState.year--;
+                }
+                renderCalendar(state.calendarState.year, state.calendarState.month);
+            });
+            document.getElementById('next-month-btn').addEventListener('click', () => {
+                state.calendarState.month++;
+                if (state.calendarState.month > 11) {
+                    state.calendarState.month = 0;
+                    state.calendarState.year++;
+                }
+                renderCalendar(state.calendarState.year, state.calendarState.month);
+            });
+            document.getElementById('calendar-grid').addEventListener('click', (e) => {
+                const dayEl = e.target.closest('.calendar-day');
+                if (dayEl && !dayEl.classList.contains('other-month')) {
+                    state.calendarState.selectedDate = new Date(state.calendarState.year, state.calendarState.month, parseInt(dayEl.textContent));
+                    updateDeadlineDisplay();
+                    document.getElementById('calendar-modal').classList.remove('visible');
+                }
+            });
+            document.getElementById('clear-date-btn').addEventListener('click', () => {
+                state.calendarState.selectedDate = null;
+                updateDeadlineDisplay();
+                document.getElementById('calendar-modal').classList.remove('visible');
+            });
+        }
+        function showSchedulePanel(id = null) { resetScheduleState(id); ELS.schedulePanel.classList.add('visible'); ELS.app.style.overflow = 'hidden'; }
+        function hideSchedulePanel() { ELS.schedulePanel.classList.remove('visible'); ELS.app.style.overflow = 'initial'; state.currentlyEditingScheduleId = null; }
+        function setScheduleType(type) {
+            document.getElementById('schedule-type-once').classList.toggle('active', type === 'once');
+            document.getElementById('schedule-type-long').classList.toggle('active', type === 'long');
+        }
+        function setupImportanceStars() {
+            document.getElementById('importance-stars').addEventListener('click', (e) => {
+                const starEl = e.target.closest('.star');
+                if (!starEl) return;
+                const score = parseFloat(document.getElementById('importance-score').textContent);
+                const starIndex = Array.from(starEl.parentElement.children).indexOf(starEl);
+                const baseScore = starIndex * 2;
+                if (score === baseScore + 2) {
+                    updateStarsDisplay(baseScore + 1); // From full to half
+                } else {
+                    updateStarsDisplay(baseScore + 2); // From half or empty to full
+                }
+            });
+        }
+        function updateStarsDisplay(score) {
+            document.getElementById('importance-score').textContent = score.toFixed(1);
+            const stars = document.querySelectorAll('#importance-stars .star');
+            const halfScore = score / 2;
+            stars.forEach((star, index) => {
+                star.classList.remove('filled', 'half');
+                if (halfScore >= index + 1) {
+                    star.classList.add('filled');
+                } else if (halfScore > index) {
+                    star.classList.add('half');
+                }
+            });
+        }
+        function resetScheduleState(id = null) {
+            state.currentlyEditingScheduleId = id;
+            let schedule = { eventType: 'once', title: '', description: '', importance: 0, deadline: null, completed: false };
+            if (id) {
+                const existing = state.schedules.find(s => s.id === id);
+                if (existing) schedule = JSON.parse(JSON.stringify(existing)); // Deep copy
+            }
+            state.calendarState.selectedDate = schedule.deadline ? new Date(schedule.deadline.year, schedule.deadline.month-1, schedule.deadline.day) : null;
+            
+            setScheduleType(schedule.eventType);
+            document.getElementById('schedule-title-input').value = schedule.title;
+            updateStarsDisplay(schedule.importance);
+            updateDeadlineDisplay();
+            document.getElementById('deadline-hour-input').value = schedule.deadline?.hour ?? '';
+            document.getElementById('deadline-minute-input').value = schedule.deadline?.minute ?? '';
+            document.getElementById('schedule-description-input').value = schedule.description;
+        }
+        async function confirmSchedule() {
+            const title = document.getElementById('schedule-title-input').value.trim();
+            if (!title) { alert('请输入日程标题！'); return; }
+
+            const hourVal = document.getElementById('deadline-hour-input').value;
+            const minuteVal = document.getElementById('deadline-minute-input').value;
+            const hour = (hourVal !== '' && !isNaN(parseInt(hourVal))) ? parseInt(hourVal) : null;
+            const minute = (minuteVal !== '' && !isNaN(parseInt(minuteVal))) ? parseInt(minuteVal) : null;
+
+            const deadline = state.calendarState.selectedDate ? {
+                year: state.calendarState.selectedDate.getFullYear(),
+                month: state.calendarState.selectedDate.getMonth() + 1,
+                day: state.calendarState.selectedDate.getDate(),
+                hour: (hour >= 0 && hour <= 23) ? hour : null,
+                minute: (minute >= 0 && minute <= 59) ? minute : null,
+            } : null;
+
+            const scheduleData = {
+                timestamp: Date.now(),
+                eventType: document.getElementById('schedule-type-once').classList.contains('active') ? 'once' : 'long',
+                title: title,
+                importance: parseFloat(document.getElementById('importance-score').textContent),
+                deadline: deadline,
+                description: document.getElementById('schedule-description-input').value.trim(),
+                completed: false
+            };
+
+            if (state.currentlyEditingScheduleId) {
+                scheduleData.id = state.currentlyEditingScheduleId;
+                const existing = state.schedules.find(s => s.id === scheduleData.id);
+                scheduleData.completed = existing.completed;
+                await db.schedules.put(scheduleData);
+                const index = state.schedules.findIndex(s => s.id === scheduleData.id);
+                state.schedules[index] = scheduleData;
+                alert('日程已更新！');
+            } else {
+                const id = await db.schedules.add(scheduleData);
+                scheduleData.id = id;
+                state.schedules.push(scheduleData);
+                const msgId = await db.messages.add({ timestamp: scheduleData.timestamp, role: 'user', content: ``, type: 'schedule', relatedId: id });
+                state.messages.push({ id: msgId, timestamp: scheduleData.timestamp, role: 'user', type: 'schedule', relatedId: id });
+            }
+            
+            hideSchedulePanel();
+            renderSchedules();
+            renderChatMessages();
+        }
+        function classifySchedule(schedule) {
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+            let isUrgent = false;
+
+            if (schedule.eventType !== 'long' && schedule.deadline) {
+                const deadlineDate = new Date(schedule.deadline.year, schedule.deadline.month - 1, schedule.deadline.day);
+                if (deadlineDate <= threeDaysLater) isUrgent = true;
+            }
+            
+            const isImportant = schedule.importance >= 6;
+            if (isImportant && isUrgent) return 1;
+            if (isImportant && !isUrgent) return 2;
+            if (!isImportant && isUrgent) return 3;
+            return 4;
+        }
+        function renderSchedules() {
+            const quadrants = { 1: [], 2: [], 3: [], 4: [] };
+            const completed = [];
+            state.schedules.forEach(s => {
+                if (s.completed) { completed.push(s); } else { quadrants[classifySchedule(s)].push(s); }
+            });
+
+            for (let i = 1; i <= 4; i++) {
+                const container = document.getElementById(`quadrant-${i}-items`);
+                container.innerHTML = '';
+                if (quadrants[i].length > 0) {
+                    quadrants[i].sort((a, b) => b.importance - a.importance).forEach(s => container.appendChild(createScheduleItemElement(s)));
+                } else { container.innerHTML = `<div class="empty-state">无</div>`; }
+            }
+            
+            const completedContainer = document.getElementById('completed-items');
+            completedContainer.innerHTML = '';
+            if (completed.length > 0) {
+                completed.sort((a, b) => b.timestamp - a.timestamp).forEach(s => completedContainer.appendChild(createScheduleItemElement(s)));
+            } else { completedContainer.innerHTML = `<div class="empty-state">还没有已完成的日程</div>`; }
+        }
+        function createScheduleItemElement(schedule) {
+            const item = document.createElement('div');
+            item.className = 'schedule-item';
+            if (schedule.completed) item.classList.add('completed');
+            item.dataset.id = schedule.id;
+            item.innerHTML = `<div class="title">${schedule.title}</div><div class="checkbox"></div>`;
+            item.querySelector('.checkbox').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                schedule.completed = !schedule.completed;
+                await db.schedules.update(schedule.id, { completed: schedule.completed });
+                renderSchedules();
+            });
+            item.addEventListener('click', () => showScheduleDetailModal(schedule.id));
+            return item;
+        }
+        function showScheduleDetailModal(id) {
+            const schedule = state.schedules.find(s => s.id === id);
+            if (!schedule) return;
+            state.currentlyEditingScheduleId = id;
+            const modal = document.getElementById('schedule-detail-modal');
+            document.getElementById('detail-title').textContent = schedule.title;
+            document.getElementById('detail-description').textContent = schedule.description || '无';
+            document.getElementById('detail-importance').textContent = `${schedule.importance.toFixed(1)} / 10.0`;
+            document.getElementById('detail-deadline').textContent = schedule.deadline ? formatDeadline(schedule.deadline) : '无';
+            document.getElementById('detail-type').textContent = schedule.eventType === 'long' ? '长期事件' : '单次事件';
+            modal.classList.add('visible');
+        }
+        function handleEditScheduleFromModal() {
+            document.getElementById('schedule-detail-modal').classList.remove('visible');
+            showSchedulePanel(state.currentlyEditingScheduleId);
+        }
+        async function handleDeleteScheduleFromModal() {
+            if (!confirm('确定要删除此日程及其聊天记录吗？')) return;
+            const id = state.currentlyEditingScheduleId;
+            const msg = state.messages.find(m => m.relatedId === id && m.type === 'schedule');
+            
+            await db.schedules.delete(id);
+            state.schedules = state.schedules.filter(s => s.id !== id);
+            if (msg) {
+                await db.messages.delete(msg.id);
+                state.messages = state.messages.filter(m => m.id !== msg.id);
+            }
+            
+            document.getElementById('schedule-detail-modal').classList.remove('visible');
+            renderSchedules();
+            renderChatMessages(false);
+            state.currentlyEditingScheduleId = null;
+        }
+        function formatDeadline(deadlineObj) {
+            if (!deadlineObj) return '无';
+            const { year, month, day, hour, minute } = deadlineObj;
+            let str = '';
+            if (year && month && day) str += `${year}年${month}月${day}日`;
+            
+            if (hour != null && minute != null) {
+                if (str) str += ' ';
+                str += `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+            }
+            return str.trim() || '无';
+        }
+        function showCalendarModal() {
+            const now = new Date();
+            const initialDate = state.calendarState.selectedDate || now;
+            state.calendarState.year = initialDate.getFullYear();
+            state.calendarState.month = initialDate.getMonth();
+            renderCalendar(state.calendarState.year, state.calendarState.month);
+            document.getElementById('calendar-modal').classList.add('visible');
+        }
+        function renderCalendar(year, month) {
+            const grid = document.getElementById('calendar-grid');
+            document.getElementById('calendar-month-year').textContent = `${year}年 ${month + 1}月`;
+            grid.innerHTML = '';
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            for (let i = 0; i < firstDay; i++) {
+                grid.insertAdjacentHTML('beforeend', `<div></div>`);
+            }
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = i;
+                if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+                if (state.calendarState.selectedDate && 
+                    year === state.calendarState.selectedDate.getFullYear() && 
+                    month === state.calendarState.selectedDate.getMonth() && 
+                    i === state.calendarState.selectedDate.getDate()) {
+                    dayEl.classList.add('selected');
+                }
+                grid.appendChild(dayEl);
+            }
+        }
+        function updateDeadlineDisplay() {
+            const textEl = document.getElementById('deadline-display-text');
+            if (state.calendarState.selectedDate) {
+                textEl.textContent = formatDeadline({
+                    year: state.calendarState.selectedDate.getFullYear(),
+                    month: state.calendarState.selectedDate.getMonth() + 1,
+                    day: state.calendarState.selectedDate.getDate()
+                });
+                textEl.style.color = 'var(--text-primary)';
+            } else {
+                textEl.textContent = '选择日期';
+                textEl.style.color = 'var(--text-secondary)';
+                document.getElementById('deadline-hour-input').value = '';
+                document.getElementById('deadline-minute-input').value = '';
+            }
+        }
+
+        // --- General & Utility Functions ---
+        function fileToBase64(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); }); }
+        
+        let cropper = null;
+        function handleAvatarUpload(event, callback) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const modal = document.getElementById('cropper-modal');
+            const image = document.getElementById('cropper-image');
+            const saveBtn = modal.querySelector('.save-btn');
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                image.src = e.target.result;
+                modal.classList.add('visible');
+                
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(image, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    background: false,
+                    autoCropArea: 0.8,
+                });
+                
+                saveBtn.onclick = () => {
+                    const canvas = cropper.getCroppedCanvas({ width: 256, height: 256, });
+                    const croppedBase64 = canvas.toDataURL('image/png');
+                    callback(croppedBase64);
+                    modal.classList.remove('visible');
+                    cropper.destroy();
+                    cropper = null;
+                };
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; 
+        }
+
+        function download(filename, text, mimeType = 'text/plain') {
+            const blob = new Blob(['\uFEFF' + text], { type: `${mimeType};charset=utf-8` });
+            const element = document.createElement('a');
+            element.href = URL.createObjectURL(blob);
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            URL.revokeObjectURL(element.href);
+        }
+
+        async function exportAsJSON() { const dataToExport = { appConfig: await db.appConfig.toArray(), transactions: await db.transactions.toArray(), messages: await db.messages.toArray(), apiProxies: await db.apiProxies.toArray(), aiCharacters: await db.aiCharacters.toArray(), currencies: await db.currencies.toArray(), schedules: await db.schedules.toArray() }; download('warm-bookkeeping-backup.json', JSON.stringify(dataToExport, null, 2), 'application/json'); }
+        async function importFromJSON(event) { const file = event.target.files[0]; if (!file) return; if (!confirm('警告：这将覆盖所有现有数据！你确定要继续吗？')) { event.target.value = ''; return; } const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); await db.transaction('rw', db.tables, async () => { for(const table of db.tables) { await table.clear(); } await Promise.all([ db.appConfig.bulkAdd(data.appConfig || []), db.transactions.bulkAdd(data.transactions || []), db.messages.bulkAdd(data.messages || []), db.apiProxies.bulkAdd(data.apiProxies || []), db.aiCharacters.bulkAdd(data.aiCharacters || []), db.currencies.bulkAdd(data.currencies || []), db.schedules.bulkAdd(data.schedules || []) ]); }); alert('导入成功！应用将重新加载。'); location.reload(); } catch (err) { alert('导入失败！文件格式错误或数据损坏。'); console.error(err); } }; reader.readAsText(file, 'UTF-8'); event.target.value = ''; }
+        function exportAsTXT() { let textContent = `聊天记录导出 - ${new Date().toLocaleString()}\n群聊名称: ${state.config.chatName}\n========================================\n\n`; state.messages.forEach(msg => { const time = new Date(msg.timestamp).toLocaleString(); let sender = '我'; if (msg.role === 'assistant') { const char = state.characters.find(c => c.id === msg.senderId); sender = char ? char.name : 'AI'; } textContent += `[${time}] ${sender}:\n`; if (msg.type === 'transaction') { const t = state.transactions.find(t => t.id === msg.relatedId); if(t) textContent += `    [记账] ${t.type === 'expense' ? '支出' : '收入'} ${t.amount.toFixed(2)} ${t.currency}。备注: ${t.remark}\n\n`; } else if (msg.type === 'schedule') { const s = state.schedules.find(s => s.id === msg.relatedId); if(s) textContent += `    [日程] ${s.title}。说明: ${s.description}\n\n`; } else if (msg.type === 'image') { textContent += `    [发送了一张图片]\n\n`; } else { textContent += `    ${msg.content}\n\n`; } }); download('聊天记录.txt', textContent, 'text/plain'); }
+        
+        function setupModal(openBtnId, modalId, closeBtnId, onOpen) { const modal = document.getElementById(modalId); if (openBtnId) { document.getElementById(openBtnId).addEventListener('click', () => { if (onOpen) onOpen(); modal.classList.add('visible'); }); } if (closeBtnId) { document.getElementById(closeBtnId).addEventListener('click', () => modal.classList.remove('visible')); } modal.querySelector('.cancel-btn')?.addEventListener('click', () => { modal.classList.remove('visible'); if (cropper && modalId === 'cropper-modal') { cropper.destroy(); cropper = null; } }); }
+        function setupEditorModal(modalId, onSave) { const modal = document.getElementById(modalId); if(onSave) modal.querySelector('.save-btn').addEventListener('click', onSave); modal.querySelector('.cancel-btn').addEventListener('click', () => modal.classList.remove('visible')); }
+        
+        let editingProxyId = null;
+        function renderProxyList() { const list = document.getElementById('proxy-list'); list.innerHTML = ''; if (state.proxies.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有任何反代，快添加一个吧！</p>'; } state.proxies.forEach(p => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div class="name">${p.name || '未命名反代'}</div><div class="details">URL: ${p.url}</div><div class="list-item-actions"><button class="edit-proxy" data-id="${p.id}">✏️</button><button class="delete-proxy" data-id="${p.id}">🗑️</button></div>`; item.querySelector('.edit-proxy').addEventListener('click', () => openProxyEditor(p.id)); item.querySelector('.delete-proxy').addEventListener('click', () => deleteProxy(p.id)); list.appendChild(item); }); }
+        function openProxyEditor(id = null) { editingProxyId = id; const modal = document.getElementById('proxy-editor-modal'); const title = document.getElementById('proxy-editor-title'); const name = document.getElementById('proxy-editor-name'); const url = document.getElementById('proxy-editor-url'); const apikey = document.getElementById('proxy-editor-apikey'); const models = document.getElementById('proxy-editor-models'); if (id) { const proxy = state.proxies.find(p => p.id === id); title.textContent = "编辑反代"; name.value = proxy.name || ''; url.value = proxy.url; apikey.value = proxy.apiKey; models.value = proxy.models ? proxy.models.split(',').join('\n') : ''; } else { title.textContent = "添加新反代"; name.value = ''; url.value = ''; apikey.value = ''; models.value = ''; } modal.classList.add('visible'); }
+        async function saveProxy() { const modelsValue = document.getElementById('proxy-editor-models').value.trim().split('\n').map(m => m.trim()).filter(Boolean).join(','); const proxyData = { name: document.getElementById('proxy-editor-name').value.trim(), url: document.getElementById('proxy-editor-url').value.trim(), apiKey: document.getElementById('proxy-editor-apikey').value.trim(), models: modelsValue }; if (editingProxyId) { proxyData.id = editingProxyId; await db.apiProxies.put(proxyData); const index = state.proxies.findIndex(p => p.id === editingProxyId); state.proxies[index] = proxyData; } else { const id = await db.apiProxies.add(proxyData); state.proxies.push({ ...proxyData, id }); } renderProxyList(); document.getElementById('proxy-editor-modal').classList.remove('visible'); }
+        async function deleteProxy(id) { if (confirm('确定要删除这个反代吗？')) { await db.apiProxies.delete(id); state.proxies = state.proxies.filter(p => p.id !== id); renderProxyList(); } }
+        
+        let editingCharId = null;
+        function renderCharacterList() { const list = document.getElementById('character-list'); list.innerHTML = ''; if (state.characters.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有任何角色，快创建一个吧！</p>'; } state.characters.forEach(c => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><img src="${c.avatar || DEFAULT_AVATAR}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;"><span class="name">${c.name}</span></div><div class="list-item-actions"><button class="edit-char" data-id="${c.id}">✏️</button><button class="delete-char" data-id="${c.id}">🗑️</button></div>`; item.querySelector('.edit-char').addEventListener('click', () => openCharacterEditor(c.id)); item.querySelector('.delete-char').addEventListener('click', () => deleteCharacter(c.id)); list.appendChild(item); }); }
+        function populateModelsForProxy(proxySelectId, modelSelectId, selectedProxyId, selectedModel) { const modelSelect = document.getElementById(modelSelectId); modelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; if (!selectedProxyId) return; const proxy = state.proxies.find(p => p.id === parseInt(selectedProxyId)); if (proxy && proxy.models) { modelSelect.innerHTML = '<option value="">-- 选择模型 --</option>'; const models = proxy.models.split(',').map(m => m.trim()).filter(Boolean); models.forEach(modelName => { const option = document.createElement('option'); option.value = modelName; option.textContent = modelName; if (modelName === selectedModel) { option.selected = true; } modelSelect.appendChild(option); }); } }
+        function openCharacterEditor(id = null) { 
+            editingCharId = id; 
+            const modal = document.getElementById('character-editor-modal'); 
+            const title = document.getElementById('character-editor-title'); 
+            const name = document.getElementById('character-editor-name'); 
+            const avatarPreview = document.getElementById('character-editor-avatar-preview'); 
+            const prompt = document.getElementById('character-editor-prompt'); 
+            const proxySelect = document.getElementById('character-editor-proxy'); 
+            const backupProxySelect = document.getElementById('character-editor-backup-proxy'); 
+            const modelSelect = document.getElementById('character-editor-model'); 
+            const backupModelSelect = document.getElementById('character-editor-backup-model'); 
+            
+            proxySelect.innerHTML = '<option value="">-- 选择主用API --</option>'; 
+            backupProxySelect.innerHTML = '<option value="">-- 选择备用API --</option>'; 
+            state.proxies.forEach(p => { const optionText = p.name || p.url; const option = `<option value="${p.id}">${optionText}</option>`; proxySelect.innerHTML += option; backupProxySelect.innerHTML += option; }); 
+            proxySelect.onchange = () => populateModelsForProxy('character-editor-proxy', 'character-editor-model', proxySelect.value, null); 
+            backupProxySelect.onchange = () => populateModelsForProxy('character-editor-backup-proxy', 'character-editor-backup-model', backupProxySelect.value, null); 
+            
+            document.getElementById('upload-char-avatar-btn').onclick = () => document.getElementById('character-editor-avatar-input').click();
+            document.getElementById('character-editor-avatar-input').onchange = (e) => {
+                handleAvatarUpload(e, (base64) => { avatarPreview.src = base64; });
+            };
+
+            if (id) { 
+                const char = state.characters.find(c => c.id === id); 
+                title.textContent = "编辑角色"; name.value = char.name; 
+                avatarPreview.src = char.avatar || DEFAULT_AVATAR; 
+                prompt.value = char.prompt; 
+                proxySelect.value = char.proxyId; 
+                populateModelsForProxy('character-editor-proxy', 'character-editor-model', char.proxyId, char.model); 
+                backupProxySelect.value = char.backupProxyId; 
+                populateModelsForProxy('character-editor-backup-proxy', 'character-editor-backup-model', char.backupProxyId, char.backupModel); 
+            } else { 
+                title.textContent = "添加新角色"; 
+                name.value = ''; 
+                avatarPreview.src = DEFAULT_AVATAR; 
+                prompt.value = ''; 
+                proxySelect.value = ''; 
+                backupProxySelect.value = ''; 
+                modelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; 
+                backupModelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; 
+            } 
+            modal.classList.add('visible'); 
+        }
+        async function saveCharacter() { const charData = { name: document.getElementById('character-editor-name').value, avatar: document.getElementById('character-editor-avatar-preview').src, prompt: document.getElementById('character-editor-prompt').value, proxyId: parseInt(document.getElementById('character-editor-proxy').value) || null, model: document.getElementById('character-editor-model').value, backupProxyId: parseInt(document.getElementById('character-editor-backup-proxy').value) || null, backupModel: document.getElementById('character-editor-backup-model').value }; if (editingCharId) { charData.id = editingCharId; await db.aiCharacters.put(charData); const index = state.characters.findIndex(c => c.id === editingCharId); state.characters[index] = charData; } else { const id = await db.aiCharacters.add(charData); state.characters.push({ ...charData, id }); } renderCharacterList(); renderChatMessages(); document.getElementById('character-editor-modal').classList.remove('visible'); }
+        async function deleteCharacter(id) { if (confirm('确定要删除这个角色吗？')) { await db.aiCharacters.delete(id); state.characters = state.characters.filter(c => c.id !== id); renderCharacterList(); renderChatMessages(); } }
+        function showAICharacterSelector() { 
+            cancelCurrentEdit();
+            const selector = document.getElementById('ai-character-selector'); 
+            selector.innerHTML = ''; 
+            if (state.characters.length === 0) { 
+                selector.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">请先在“设置”页面添加AI角色！</p>'; 
+            } 
+            state.characters.forEach(c => { 
+                const item = document.createElement('div'); 
+                item.className = 'character-item'; 
+                item.innerHTML = `<img src="${c.avatar || DEFAULT_AVATAR}" alt="${c.name}"><div class="name">${c.name}</div>`; 
+                item.addEventListener('click', () => { 
+                    document.getElementById('ai-character-selector-modal').classList.remove('visible'); 
+                    triggerAIResponse(c); 
+                }); 
+                selector.appendChild(item); 
+            }); 
+            document.getElementById('ai-character-selector-modal').classList.add('visible'); 
+        }
+
+        let editingCurrencyCode = null;
+        function renderCurrencyList() {
+            const list = document.getElementById('currency-list');
+            list.innerHTML = '';
+            if (state.currencies.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有自定义币种，快添加一个吧！</p>';
+                return;
+            }
+            state.currencies.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'list-item-setting';
+                item.innerHTML = `
+                    <div class="name">${c.name} (${c.code})</div>
+                    <div class="details">1 ${c.code} ≈ ${c.rate} RMB</div>
+                    <div class="list-item-actions">
+                        <button class="edit-currency" data-code="${c.code}">✏️</button>
+                        <button class="delete-currency" data-code="${c.code}">🗑️</button>
+                    </div>`;
+                item.querySelector('.edit-currency').addEventListener('click', () => openCurrencyEditor(c.code));
+                item.querySelector('.delete-currency').addEventListener('click', () => deleteCurrency(c.code));
+                list.appendChild(item);
+            });
+        }
+        function openCurrencyEditor(code = null) {
+            editingCurrencyCode = code;
+            const modal = document.getElementById('currency-editor-modal');
+            const title = document.getElementById('currency-editor-title');
+            const codeInput = document.getElementById('currency-editor-code');
+            const nameInput = document.getElementById('currency-editor-name');
+            const rateInput = document.getElementById('currency-editor-rate');
+
+            if (code) {
+                const currency = state.currencies.find(c => c.code === code);
+                title.textContent = '编辑币种';
+                codeInput.value = currency.code;
+                codeInput.readOnly = true;
+                nameInput.value = currency.name;
+                rateInput.value = currency.rate;
+            } else {
+                title.textContent = '添加新币种';
+                codeInput.value = '';
+                codeInput.readOnly = false;
+                nameInput.value = '';
+                rateInput.value = '';
+            }
+            modal.classList.add('visible');
+        }
+        async function saveCurrency() {
+            const codeInput = document.getElementById('currency-editor-code');
+            const nameInput = document.getElementById('currency-editor-name');
+            const rateInput = document.getElementById('currency-editor-rate');
+
+            const code = codeInput.value.trim().toUpperCase();
+            const name = nameInput.value.trim();
+            const rate = parseFloat(rateInput.value);
+
+            if (!/^[A-Z]{3}$/.test(code)) { alert('币种代码必须是3个大写字母！'); return; }
+            if (!name) { alert('请输入币种名称！'); return; }
+            if (isNaN(rate) || rate <= 0) { alert('请输入有效的汇率！'); return; }
+            if (code === 'RMB') { alert('RMB是基础币种，不能添加！'); return; }
+
+            const currencyData = { code, name, rate };
+            await db.currencies.put(currencyData);
+            
+            state.currencies = await db.currencies.toArray();
+            renderCurrencyList();
+            populateLedgerCurrencyFilter();
+            document.getElementById('currency-editor-modal').classList.remove('visible');
+        }
+        async function deleteCurrency(code) {
+            if (confirm(`确定要删除币种 ${code} 吗？`)) {
+                await db.currencies.delete(code);
+                state.currencies = state.currencies.filter(c => c.code !== code);
+                renderCurrencyList();
+                populateLedgerCurrencyFilter();
+            }
+        }
+
+        function toggleSidebar() {
+            cancelCurrentEdit();
+            const isVisible = ELS.sidebar.classList.contains('visible');
+            if (!isVisible) {
+                const { tokens } = buildContext(state.config.maxTokens || 4096);
+                ELS.sidebarTokenCount.textContent = tokens;
+                ELS.sidebarPreviewContent.style.display = 'none'; 
+                ELS.previewContextBtn.textContent = '预览上下文';
+            }
+            ELS.sidebar.classList.toggle('visible');
+            ELS.sidebarOverlay.classList.toggle('visible');
+        }
+
+        function toggleContextPreview() {
+            const isVisible = ELS.sidebarPreviewContent.style.display === 'block';
+            if (isVisible) {
+                ELS.sidebarPreviewContent.style.display = 'none';
+                ELS.previewContextBtn.textContent = '预览上下文';
+            } else {
+                const { context } = buildContext(state.config.maxTokens || 4096);
+                const now = new Date();
+                const formattedDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const systemPromptForPreview = `[System Info]\n- Current Model: PREVIEW_MODEL\n- Current Time: ${formattedDateTime}\n- Your Role: PREVIEW_ROLE\n\n---\n\nPREVIEW_SYSTEM_PROMPT`;
+                
+                const previewPayload = {
+                    model: "PREVIEW_MODEL",
+                    messages: [
+                        { role: 'system', content: systemPromptForPreview },
+                        ...context
+                    ]
+                };
+                ELS.sidebarPreviewContent.textContent = JSON.stringify(previewPayload, null, 2);
+                ELS.sidebarPreviewContent.style.display = 'block';
+                ELS.previewContextBtn.textContent = '隐藏预览';
+            }
+        }
+
+        init();
+    });
+    </script>
+</body>
+</html>
