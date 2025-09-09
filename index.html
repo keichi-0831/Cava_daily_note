@@ -524,20 +524,24 @@
         }
 
         /* Transaction Input Panel */
-        #transaction-panel { position: absolute; bottom: 0; left: 0; width: 100%; background-color: var(--bg-main); border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px var(--shadow-medium); z-index: 200; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease; visibility: hidden; }
+        #transaction-panel { position: absolute; bottom: 0; left: 0; width: 100%; background-color: var(--bg-main); border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 20px var(--shadow-medium); z-index: 200; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease; visibility: hidden; display: flex; flex-direction: column; max-height: 85vh; }
         #transaction-panel.visible { transform: translateY(0); visibility: visible; }
-        .panel-header { padding: 8px 15px; text-align: center; font-weight: 600; position: relative; }
+        .panel-header { padding: 8px 15px; text-align: center; font-weight: 600; position: relative; flex-shrink: 0; }
         .panel-header .close-btn { position: absolute; left: 15px; top: 8px; font-size: 18px; line-height: 1; color: var(--text-secondary); cursor: pointer; }
-        .type-selector { display: flex; padding: 0 15px; margin-bottom: 15px; }
+        .type-selector { display: flex; padding: 0 15px; margin-bottom: 15px; flex-shrink: 0; }
         .type-selector button { flex: 1; padding: 10px; font-size: 16px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; position: relative; }
         .type-selector button.active { color: var(--text-primary); font-weight: bold; }
         .type-selector button.active::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 30px; height: 3px; background-color: var(--accent-secondary); border-radius: 2px; }
-        #category-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 0 15px 15px; max-height: 200px; overflow-y: auto; }
+        .panel-scrollable-content { flex-grow: 1; overflow-y: auto; min-height: 0; }
+        #category-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 0 15px 15px; }
         .category-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 5px; border-radius: 8px; transition: background-color 0.2s; }
         .category-item.selected { background-color: var(--bg-soft); }
         .category-item .icon { font-size: 28px; margin-bottom: 5px; }
         .category-item .name { font-size: 12px; }
-        #numpad-container { display: grid; grid-template-columns: 3fr 1fr; background-color: var(--bg-secondary); padding-bottom: env(safe-area-inset-bottom); }
+        .panel-form-group { padding: 0 15px 15px; }
+        .panel-form-group label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--text-primary); }
+        #transaction-remark-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-secondary); color: var(--text-primary); font-size: 14px; box-sizing: border-box; resize: none; min-height: 40px; }
+        #numpad-container { display: grid; grid-template-columns: 3fr 1fr; background-color: var(--bg-secondary); padding-bottom: env(safe-area-inset-bottom); margin-top: auto; flex-shrink: 0; }
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); }
         .numpad button { padding: 20px 0; font-size: 24px; border: none; background: transparent; border-top: 1px solid var(--border-color); border-right: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); }
         .numpad button:active { background-color: var(--bg-soft); }
@@ -546,7 +550,7 @@
         .numpad-actions button { flex: 1; font-size: 22px; border: none; background: transparent; border-top: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); }
         .numpad-actions button:active { background-color: var(--bg-soft); }
         .numpad-actions .confirm { background-color: var(--accent-secondary); color: white; font-weight: bold; font-size: 18px; }
-        #amount-display-container { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); border-top-left-radius: 20px; border-top-right-radius: 20px; }
+        #amount-display-container { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); border-top-left-radius: 20px; border-top-right-radius: 20px; flex-shrink: 0; }
         #currency-selector { font-size: 18px; font-weight: bold; color: var(--text-secondary); padding: 5px; cursor: pointer; }
         #amount-display { font-size: 32px; font-weight: bold; text-align: right; flex-grow: 1; }
 
@@ -781,8 +785,33 @@
         .ledger-controls .filter-btn { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; cursor: pointer; }
         .ledger-controls select { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; }
         .ledger-footer-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: 15px; }
-        #toggle-ledger-view-btn { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 18px; line-height: 1; cursor: pointer; height: 34px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
-        #ledger-currency { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; height: 34px; box-sizing: border-box; display: flex; align-items: center; }
+        #toggle-ledger-view-btn {
+            border: 1px solid var(--accent-primary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            height: 34px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #ledger-currency {
+            border: 1px solid var(--accent-primary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 14px;
+            height: 34px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+        }
         
         #ledger-view-wrapper { display: flex; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); flex-grow: 1; }
         #ledger-list-view, #ledger-chart-view { width: 100%; height: 100%; overflow-y: auto; flex-shrink: 0; box-sizing: border-box; }
@@ -1027,7 +1056,7 @@
                     <button class="chat-action-btn" id="ai-trigger-btn">🤖</button>
                     <button class="chat-action-btn" id="image-upload-btn">🖼️</button>
                     <input type="file" id="image-upload-input" accept="image/*" style="display:none;">
-                    <textarea id="chat-input" rows="1" placeholder="添加备注..."></textarea>
+                    <textarea id="chat-input" rows="1" placeholder="说点什么..."></textarea>
                     <button id="send-btn" disabled>发送</button>
                 </div>
             </div>
@@ -1182,7 +1211,13 @@
             </div>
             <div id="amount-display-container"><span id="currency-selector">RMB</span><div id="amount-display">0.00</div></div>
             <div class="type-selector"><button id="type-expense-btn" class="active">支出</button><button id="type-income-btn">收入</button></div>
-            <div id="category-selector"></div>
+            <div class="panel-scrollable-content">
+                <div id="category-selector"></div>
+                <div class="panel-form-group">
+                    <label>备注</label>
+                    <textarea id="transaction-remark-input" rows="1" placeholder="选填，添加备注..."></textarea>
+                </div>
+            </div>
             <div id="numpad-container">
                 <div class="numpad"><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="zero" data-key="0">0</button><button data-key=".">.</button></div>
                 <div class="numpad-actions"><button id="numpad-delete">⌫</button><button id="numpad-confirm" class="confirm">完成</button></div>
@@ -1308,6 +1343,7 @@
             accountingScreen: document.getElementById('accounting-screen'), transactionPanel: document.getElementById('transaction-panel'),
             schedulePanel: document.getElementById('schedule-panel'),
             amountDisplay: document.getElementById('amount-display'), categorySelector: document.getElementById('category-selector'),
+            transactionRemarkInput: document.getElementById('transaction-remark-input'),
             ledgerList: document.getElementById('ledger-list'), ledgerSummary: document.getElementById('ledger-summary'),
             ledgerSort: document.getElementById('ledger-sort'),
             ledgerCurrency: document.getElementById('ledger-currency'),
@@ -1521,25 +1557,22 @@
         function togglePlusMenu() { ELS.plusMenu.classList.toggle('visible'); }
         function hidePlusMenu() { ELS.plusMenu.classList.remove('visible'); }
         
-        function updateSendButtonState() { const hasText = ELS.chatInput.value.trim().length > 0; const hasTransaction = state.currentTransaction.amountStr !== '0'; ELS.sendBtn.disabled = !hasText && !hasTransaction; }
+        function updateSendButtonState() {
+            const hasText = ELS.chatInput.value.trim().length > 0;
+            ELS.sendBtn.disabled = !hasText;
+        }
 
         async function sendUserMessage() {
             if (ELS.sendBtn.disabled) return;
-            const remark = ELS.chatInput.value.trim();
-            const amount = parseFloat(state.currentTransaction.amountStr);
-            if (amount > 0) {
-                const newTransaction = { timestamp: Date.now(), type: state.currentTransaction.type, category: state.currentTransaction.category, amount: amount, currency: state.currentTransaction.currency, remark: remark };
-                const transId = await db.transactions.add(newTransaction);
-                const msgId = await db.messages.add({ timestamp: newTransaction.timestamp, role: 'user', content: ``, type: 'transaction', relatedId: transId });
-                state.transactions.push({ ...newTransaction, id: transId });
-                state.messages.push({ id: msgId, timestamp: newTransaction.timestamp, role: 'user', type: 'transaction', relatedId: transId });
-                resetTransactionState(); ELS.chatInput.value = ''; updateSendButtonState();
-            } else if (remark) {
-                const newMsg = { timestamp: Date.now(), role: 'user', content: remark, type: 'text' };
+            const content = ELS.chatInput.value.trim();
+            if (content) {
+                const newMsg = { timestamp: Date.now(), role: 'user', content: content, type: 'text' };
                 const id = await db.messages.add(newMsg);
-                state.messages.push({ ...newMsg, id }); ELS.chatInput.value = '';
+                state.messages.push({ ...newMsg, id });
+                ELS.chatInput.value = '';
+                updateSendButtonState();
+                renderChatMessages();
             }
-            renderChatMessages();
         }
 
         async function sendUserImage(event) {
@@ -2119,7 +2152,7 @@
             const isCopyable = isUserText || isAiText || (isUserTransaction && state.transactions.find(t => t.id === msg.relatedId)?.remark) || (isUserSchedule && state.schedules.find(s => s.id === msg.relatedId)?.description);
 
             editUserBtn.style.display = (isUserText || isUserTransaction || isUserSchedule) ? 'block' : 'none';
-            if (isUserTransaction) editUserBtn.innerHTML = '✏️ 编辑备注';
+            if (isUserTransaction) editUserBtn.innerHTML = '✏️ 编辑';
             else if (isUserSchedule) editUserBtn.innerHTML = '✏️ 编辑说明';
             else editUserBtn.innerHTML = '✏️ 编辑';
             
@@ -2153,6 +2186,12 @@
             const msgIndex = state.messages.findIndex(m => m.id === msgId);
             if (msgIndex === -1) return;
             const msg = state.messages[msgIndex];
+            
+            if (msg.type === 'transaction') {
+                showTransactionPanel(msg.relatedId);
+                state.currentlyEditingMsgId = null;
+                return;
+            }
 
             const msgElement = document.getElementById(msgId);
             if (!msgElement) return;
@@ -2160,10 +2199,7 @@
             const bubble = msgElement.querySelector('.message-bubble');
             let targetContainer, originalText;
 
-            if (msg.type === 'transaction') {
-                targetContainer = msgElement.querySelector('.transaction-remark');
-                originalText = state.transactions.find(t => t.id === msg.relatedId)?.remark || '';
-            } else if (msg.type === 'schedule') {
+            if (msg.type === 'schedule') {
                 targetContainer = msgElement.querySelector('.schedule-description');
                 originalText = state.schedules.find(s => s.id === msg.relatedId)?.description || '';
             } else if (msg.type === 'text') {
@@ -2218,12 +2254,7 @@
                 e.stopPropagation();
                 const newText = textarea.value.trim();
                 
-                if (msg.type === 'transaction') {
-                    const trans = state.transactions.find(t => t.id === msg.relatedId);
-                    if (trans) trans.remark = newText;
-                    await db.transactions.update(msg.relatedId, { remark: newText });
-                    if (document.getElementById('ledger-screen').classList.contains('active')) renderLedger();
-                } else if (msg.type === 'schedule') {
+                if (msg.type === 'schedule') {
                     const schedule = state.schedules.find(s => s.id === msg.relatedId);
                     if(schedule) schedule.description = newText;
                     await db.schedules.update(msg.relatedId, { description: newText });
@@ -2325,6 +2356,7 @@
                     amountStr: String(t.amount),
                     currency: t.currency
                 };
+                ELS.transactionRemarkInput.value = t.remark || '';
                 document.getElementById('transaction-panel-title').textContent = '编辑记账';
             } else {
                 resetTransactionState();
@@ -2374,11 +2406,13 @@
         function handleNumpad(e) { const key = e.target.dataset.key; if (!key) return; let amount = state.currentTransaction.amountStr; if (key === '.') { if (!amount.includes('.')) amount += '.'; } else { if (amount === '0') amount = key; else if (amount.includes('.') && amount.split('.')[1].length >= 2) return; else amount += key; } state.currentTransaction.amountStr = amount; updateAmountDisplay(); }
         function handleNumpadDelete() { let amount = state.currentTransaction.amountStr; amount = amount.slice(0, -1); if (amount === '') amount = '0'; state.currentTransaction.amountStr = amount; updateAmountDisplay(); }
         function toggleCurrency() { const currencies = ['RMB', ...state.currencies.map(c => c.code)]; const currentIndex = currencies.indexOf(state.currentTransaction.currency); const nextIndex = (currentIndex + 1) % currencies.length; const newCurrency = currencies[nextIndex]; state.currentTransaction.currency = newCurrency; document.getElementById('currency-selector').textContent = newCurrency; if (!state.currentlyEditingTransactionId) localStorage.setItem('lastSelectedCurrency', newCurrency); }
-        function updateAmountDisplay() { ELS.amountDisplay.textContent = state.currentTransaction.amountStr; updateSendButtonState(); }
+        function updateAmountDisplay() { ELS.amountDisplay.textContent = state.currentTransaction.amountStr; }
         
         async function confirmTransaction() {
             const amount = parseFloat(state.currentTransaction.amountStr);
             if (amount <= 0) { alert('金额必须大于0'); return; }
+            
+            const remark = ELS.transactionRemarkInput.value.trim();
 
             if (state.currentlyEditingTransactionId) {
                 const transIndex = state.transactions.findIndex(t => t.id === state.currentlyEditingTransactionId);
@@ -2390,21 +2424,38 @@
                         category: state.currentTransaction.category,
                         amount: amount,
                         currency: state.currentTransaction.currency,
-                        // remark is edited separately via chat, so we don't touch it here
+                        remark: remark
                     };
                     await db.transactions.put(updatedTransaction);
                     state.transactions[transIndex] = updatedTransaction;
                     alert('记账已更新！');
-                    hideTransactionPanel();
                     renderLedger();
-                    renderChatMessages(false); // Update chat card if visible
+                    renderChatMessages(false);
                 }
             } else {
-                hideTransactionPanel();
-                sendUserMessage();
+                const newTransaction = { 
+                    timestamp: Date.now(), 
+                    type: state.currentTransaction.type, 
+                    category: state.currentTransaction.category, 
+                    amount: amount, 
+                    currency: state.currentTransaction.currency, 
+                    remark: remark 
+                };
+                const transId = await db.transactions.add(newTransaction);
+                const msgId = await db.messages.add({ timestamp: newTransaction.timestamp, role: 'user', content: ``, type: 'transaction', relatedId: transId });
+                state.transactions.push({ ...newTransaction, id: transId });
+                state.messages.push({ id: msgId, timestamp: newTransaction.timestamp, role: 'user', type: 'transaction', relatedId: transId });
+                renderChatMessages();
             }
+            hideTransactionPanel();
         }
-        function resetTransactionState() { const lastCurrency = localStorage.getItem('lastSelectedCurrency') || 'RMB'; state.currentTransaction = { type: 'expense', category: null, amountStr: '0', currency: lastCurrency }; updateAmountDisplay(); document.getElementById('currency-selector').textContent = lastCurrency; }
+        function resetTransactionState() {
+            const lastCurrency = localStorage.getItem('lastSelectedCurrency') || 'RMB';
+            state.currentTransaction = { type: 'expense', category: null, amountStr: '0', currency: lastCurrency };
+            updateAmountDisplay();
+            document.getElementById('currency-selector').textContent = lastCurrency;
+            ELS.transactionRemarkInput.value = '';
+        }
         
         // --- Schedule & Calendar Logic ---
         function setupSchedulePanelListeners() {
@@ -2909,117 +2960,282 @@
 
         async function exportAsJSON() { const dataToExport = { appConfig: await db.appConfig.toArray(), transactions: await db.transactions.toArray(), messages: await db.messages.toArray(), apiProxies: await db.apiProxies.toArray(), aiCharacters: await db.aiCharacters.toArray(), currencies: await db.currencies.toArray(), schedules: await db.schedules.toArray() }; download('warm-bookkeeping-backup.json', JSON.stringify(dataToExport, null, 2), 'application/json'); }
         async function importFromJSON(event) { const file = event.target.files[0]; if (!file) return; if (!confirm('警告：这将覆盖所有现有数据！你确定要继续吗？')) { event.target.value = ''; return; } const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); await db.transaction('rw', db.tables, async () => { for(const table of db.tables) { await table.clear(); } await Promise.all([ db.appConfig.bulkAdd(data.appConfig || []), db.transactions.bulkAdd(data.transactions || []), db.messages.bulkAdd(data.messages || []), db.apiProxies.bulkAdd(data.apiProxies || []), db.aiCharacters.bulkAdd(data.aiCharacters || []), db.currencies.bulkAdd(data.currencies || []), db.schedules.bulkAdd(data.schedules || []) ]); }); alert('导入成功！应用将重新加载。'); location.reload(); } catch (err) { alert('导入失败！文件格式错误或数据损坏。'); console.error(err); } }; reader.readAsText(file, 'UTF-8'); event.target.value = ''; }
-        function exportAsTXT() { let textContent = `聊天记录导出 - ${new Date().toLocaleString()}\n群聊名称: ${state.config.chatName}\n========================================\n\n`; state.messages.forEach(msg => { const time = new Date(msg.timestamp).toLocaleString(); let sender = '我'; if (msg.role === 'assistant') { const char = state.characters.find(c => c.id === msg.senderId); sender = char ? char.name : 'AI'; } textContent += `[${time}] ${sender}:\n`; if (msg.type === 'transaction') { const t = state.transactions.find(t => t.id === msg.relatedId); if(t) textContent += `    [记账] ${t.type === 'expense' ? '支出' : '收入'} ${t.amount.toFixed(2)} ${t.currency}。备注: ${t.remark}\n\n`; } else if (msg.type === 'schedule') { const s = state.schedules.find(s => s.id === msg.relatedId); if(s) textContent += `    [日程] ${s.title}。说明: ${s.description}\n\n`; } else if (msg.type === 'image') { textContent += `    [发送了一张图片]\n\n`; } else { textContent += `    ${msg.content}\n\n`; } }); download('聊天记录.txt', textContent, 'text/plain'); }
-        
-        function setupModal(openBtnId, modalId, closeBtnId, onOpen) { const modal = document.getElementById(modalId); if (openBtnId) { document.getElementById(openBtnId).addEventListener('click', () => { if (onOpen) onOpen(); modal.classList.add('visible'); }); } if (closeBtnId) { document.getElementById(closeBtnId).addEventListener('click', () => modal.classList.remove('visible')); } modal.querySelector('.cancel-btn')?.addEventListener('click', () => { modal.classList.remove('visible'); if (cropper && modalId === 'cropper-modal') { cropper.destroy(); cropper = null; } }); }
-        function setupEditorModal(modalId, onSave) { const modal = document.getElementById(modalId); if(onSave) modal.querySelector('.save-btn').addEventListener('click', onSave); modal.querySelector('.cancel-btn').addEventListener('click', () => modal.classList.remove('visible')); }
-        
-        let editingProxyId = null;
-        function renderProxyList() { const list = document.getElementById('proxy-list'); list.innerHTML = ''; if (state.proxies.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有任何反代，快添加一个吧！</p>'; } state.proxies.forEach(p => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div class="name">${p.name || '未命名反代'}</div><div class="details">URL: ${p.url}</div><div class="list-item-actions"><button class="edit-proxy" data-id="${p.id}">✏️</button><button class="delete-proxy" data-id="${p.id}">🗑️</button></div>`; item.querySelector('.edit-proxy').addEventListener('click', () => openProxyEditor(p.id)); item.querySelector('.delete-proxy').addEventListener('click', () => deleteProxy(p.id)); list.appendChild(item); }); }
-        function openProxyEditor(id = null) { editingProxyId = id; const modal = document.getElementById('proxy-editor-modal'); const title = document.getElementById('proxy-editor-title'); const name = document.getElementById('proxy-editor-name'); const url = document.getElementById('proxy-editor-url'); const apikey = document.getElementById('proxy-editor-apikey'); const models = document.getElementById('proxy-editor-models'); if (id) { const proxy = state.proxies.find(p => p.id === id); title.textContent = "编辑反代"; name.value = proxy.name || ''; url.value = proxy.url; apikey.value = proxy.apiKey; models.value = proxy.models ? proxy.models.split(',').join('\n') : ''; } else { title.textContent = "添加新反代"; name.value = ''; url.value = ''; apikey.value = ''; models.value = ''; } modal.classList.add('visible'); }
-        async function saveProxy() { const modelsValue = document.getElementById('proxy-editor-models').value.trim().split('\n').map(m => m.trim()).filter(Boolean).join(','); const proxyData = { name: document.getElementById('proxy-editor-name').value.trim(), url: document.getElementById('proxy-editor-url').value.trim(), apiKey: document.getElementById('proxy-editor-apikey').value.trim(), models: modelsValue }; if (editingProxyId) { proxyData.id = editingProxyId; await db.apiProxies.put(proxyData); const index = state.proxies.findIndex(p => p.id === editingProxyId); state.proxies[index] = proxyData; } else { const id = await db.apiProxies.add(proxyData); state.proxies.push({ ...proxyData, id }); } renderProxyList(); document.getElementById('proxy-editor-modal').classList.remove('visible'); }
-        async function deleteProxy(id) { if (confirm('确定要删除这个反代吗？')) { await db.apiProxies.delete(id); state.proxies = state.proxies.filter(p => p.id !== id); renderProxyList(); } }
-        
-        let editingCharId = null;
-        function renderCharacterList() { const list = document.getElementById('character-list'); list.innerHTML = ''; if (state.characters.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有任何角色，快创建一个吧！</p>'; } state.characters.forEach(c => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><img src="${c.avatar || DEFAULT_AVATAR}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;"><span class="name">${c.name}</span></div><div class="list-item-actions"><button class="edit-char" data-id="${c.id}">✏️</button><button class="delete-char" data-id="${c.id}">🗑️</button></div>`; item.querySelector('.edit-char').addEventListener('click', () => openCharacterEditor(c.id)); item.querySelector('.delete-char').addEventListener('click', () => deleteCharacter(c.id)); list.appendChild(item); }); }
-        function populateModelsForProxy(proxySelectId, modelSelectId, selectedProxyId, selectedModel) { const modelSelect = document.getElementById(modelSelectId); modelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; if (!selectedProxyId) return; const proxy = state.proxies.find(p => p.id === parseInt(selectedProxyId)); if (proxy && proxy.models) { modelSelect.innerHTML = '<option value="">-- 选择模型 --</option>'; const models = proxy.models.split(',').map(m => m.trim()).filter(Boolean); models.forEach(modelName => { const option = document.createElement('option'); option.value = modelName; option.textContent = modelName; if (modelName === selectedModel) { option.selected = true; } modelSelect.appendChild(option); }); } }
-        function openCharacterEditor(id = null) { 
-            editingCharId = id; 
-            const modal = document.getElementById('character-editor-modal'); 
-            const title = document.getElementById('character-editor-title'); 
-            const name = document.getElementById('character-editor-name'); 
-            const avatarPreview = document.getElementById('character-editor-avatar-preview'); 
-            const prompt = document.getElementById('character-editor-prompt'); 
-            const proxySelect = document.getElementById('character-editor-proxy'); 
-            const backupProxySelect = document.getElementById('character-editor-backup-proxy'); 
-            const modelSelect = document.getElementById('character-editor-model'); 
-            const backupModelSelect = document.getElementById('character-editor-backup-model'); 
-            
-            proxySelect.innerHTML = '<option value="">-- 选择主用API --</option>'; 
-            backupProxySelect.innerHTML = '<option value="">-- 选择备用API --</option>'; 
-            state.proxies.forEach(p => { const optionText = p.name || p.url; const option = `<option value="${p.id}">${optionText}</option>`; proxySelect.innerHTML += option; backupProxySelect.innerHTML += option; }); 
-            proxySelect.onchange = () => populateModelsForProxy('character-editor-proxy', 'character-editor-model', proxySelect.value, null); 
-            backupProxySelect.onchange = () => populateModelsForProxy('character-editor-backup-proxy', 'character-editor-backup-model', backupProxySelect.value, null); 
-            
-            document.getElementById('upload-char-avatar-btn').onclick = () => document.getElementById('character-editor-avatar-input').click();
-            document.getElementById('character-editor-avatar-input').onchange = (e) => {
-                handleAvatarUpload(e, (base64) => { avatarPreview.src = base64; });
-            };
+        function exportAsTXT() { let textContent = `聊天记录导出 - ${new Date().toLocaleString()}\n群聊名称: ${state.config.chatName}\n=================================
+`;
+            state.messages.forEach(msg => {
+                const time = new Date(msg.timestamp).toLocaleString();
+                let senderName = '我';
+                if (msg.role === 'assistant') {
+                    const char = state.characters.find(c => c.id === msg.senderId);
+                    senderName = char ? char.name : 'AI';
+                }
 
-            if (id) { 
-                const char = state.characters.find(c => c.id === id); 
-                title.textContent = "编辑角色"; name.value = char.name; 
-                avatarPreview.src = char.avatar || DEFAULT_AVATAR; 
-                prompt.value = char.prompt; 
-                proxySelect.value = char.proxyId; 
-                populateModelsForProxy('character-editor-proxy', 'character-editor-model', char.proxyId, char.model); 
-                backupProxySelect.value = char.backupProxyId; 
-                populateModelsForProxy('character-editor-backup-proxy', 'character-editor-backup-model', char.backupProxyId, char.backupModel); 
-            } else { 
-                title.textContent = "添加新角色"; 
-                name.value = ''; 
-                avatarPreview.src = DEFAULT_AVATAR; 
-                prompt.value = ''; 
-                proxySelect.value = ''; 
-                backupProxySelect.value = ''; 
-                modelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; 
-                backupModelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; 
-            } 
-            modal.classList.add('visible'); 
-        }
-        async function saveCharacter() { const charData = { name: document.getElementById('character-editor-name').value, avatar: document.getElementById('character-editor-avatar-preview').src, prompt: document.getElementById('character-editor-prompt').value, proxyId: parseInt(document.getElementById('character-editor-proxy').value) || null, model: document.getElementById('character-editor-model').value, backupProxyId: parseInt(document.getElementById('character-editor-backup-proxy').value) || null, backupModel: document.getElementById('character-editor-backup-model').value }; if (editingCharId) { charData.id = editingCharId; await db.aiCharacters.put(charData); const index = state.characters.findIndex(c => c.id === editingCharId); state.characters[index] = charData; } else { const id = await db.aiCharacters.add(charData); state.characters.push({ ...charData, id }); } renderCharacterList(); renderChatMessages(); document.getElementById('character-editor-modal').classList.remove('visible'); }
-        async function deleteCharacter(id) { if (confirm('确定要删除这个角色吗？')) { await db.aiCharacters.delete(id); state.characters = state.characters.filter(c => c.id !== id); renderCharacterList(); renderChatMessages(); } }
-        function showAICharacterSelector() { 
-            cancelCurrentEdit();
-            const selector = document.getElementById('ai-character-selector'); 
-            selector.innerHTML = ''; 
-            if (state.characters.length === 0) { 
-                selector.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">请先在“设置”页面添加AI角色！</p>'; 
-            } 
-            state.characters.forEach(c => { 
-                const item = document.createElement('div'); 
-                item.className = 'character-item'; 
-                item.innerHTML = `<img src="${c.avatar || DEFAULT_AVATAR}" alt="${c.name}"><div class="name">${c.name}</div>`; 
-                item.addEventListener('click', () => { 
-                    document.getElementById('ai-character-selector-modal').classList.remove('visible'); 
-                    triggerAIResponse(c); 
-                }); 
-                selector.appendChild(item); 
-            }); 
-            document.getElementById('ai-character-selector-modal').classList.add('visible'); 
+                let content = '';
+                if (msg.type === 'text') {
+                    content = msg.content;
+                } else if (msg.type === 'transaction') {
+                    const t = state.transactions.find(t => t.id === msg.relatedId);
+                    if (t) content = `[记账] ${t.type==='expense'?'支出':'收入'}: ${t.amount} ${t.currency} | 分类: ${CATEGORIES[t.type].find(c=>c.id===t.category)?.name} | 备注: ${t.remark}`;
+                } else if (msg.type === 'image') {
+                    content = '[图片]';
+                } else if (msg.type === 'schedule') {
+                     const s = state.schedules.find(s => s.id === msg.relatedId);
+                     if (s) content = `[日程] ${s.title} | 状态: ${s.completed?'已完成':'未完成'}`;
+                } else {
+                    content = `[${msg.type}]`
+                }
+                textContent += `\n${senderName}  (${time})\n${content}\n`;
+            });
+            download('chat-export.txt', textContent);
         }
 
-        let editingCurrencyCode = null;
-        function renderCurrencyList() {
-            const list = document.getElementById('currency-list');
-            list.innerHTML = '';
-            if (state.currencies.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有自定义币种，快添加一个吧！</p>';
-                return;
+        function setupModal(triggerId, modalId, closeId, onOpen) {
+            const modal = document.getElementById(modalId);
+            if (triggerId) document.getElementById(triggerId).addEventListener('click', () => { modal.classList.add('visible'); if (onOpen) onOpen(); });
+            if (closeId) document.getElementById(closeId).addEventListener('click', () => modal.classList.remove('visible'));
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('visible'); });
+        }
+        
+        function setupEditorModal(modalId, onSave) {
+            const modal = document.getElementById(modalId);
+            const saveBtn = modal.querySelector('.save-btn');
+            const cancelBtn = modal.querySelector('.cancel-btn');
+            if (saveBtn && onSave) saveBtn.addEventListener('click', () => onSave(modal));
+            if (cancelBtn) cancelBtn.addEventListener('click', () => modal.classList.remove('visible'));
+        }
+
+        // --- Settings Modals Logic (Proxies, Characters, etc.) ---
+        function openProxyEditor(id = null) {
+            const modal = document.getElementById('proxy-editor-modal');
+            const title = document.getElementById('proxy-editor-title');
+            const nameInput = document.getElementById('proxy-editor-name');
+            const urlInput = document.getElementById('proxy-editor-url');
+            const apiKeyInput = document.getElementById('proxy-editor-apikey');
+            const modelsInput = document.getElementById('proxy-editor-models');
+            
+            modal.dataset.id = id || '';
+            if (id) {
+                const proxy = state.proxies.find(p => p.id === id);
+                title.textContent = '编辑反代';
+                nameInput.value = proxy.name;
+                urlInput.value = proxy.url;
+                apiKeyInput.value = proxy.apiKey;
+                modelsInput.value = proxy.models.join('\n');
+            } else {
+                title.textContent = '添加新反代';
+                nameInput.value = ''; urlInput.value = ''; apiKeyInput.value = ''; modelsInput.value = '';
             }
-            state.currencies.forEach(c => {
+            modal.classList.add('visible');
+        }
+        
+        async function saveProxy() {
+            const modal = document.getElementById('proxy-editor-modal');
+            const id = modal.dataset.id ? parseInt(modal.dataset.id) : null;
+            const name = document.getElementById('proxy-editor-name').value.trim();
+            const url = document.getElementById('proxy-editor-url').value.trim();
+            const apiKey = document.getElementById('proxy-editor-apikey').value.trim();
+            const models = document.getElementById('proxy-editor-models').value.split('\n').map(m => m.trim()).filter(Boolean);
+            if (!name || !url || !apiKey || models.length === 0) { alert('所有字段均为必填项'); return; }
+            
+            const proxyData = { name, url, apiKey, models };
+            if (id) {
+                await db.apiProxies.update(id, proxyData);
+                const index = state.proxies.findIndex(p => p.id === id);
+                state.proxies[index] = { ...proxyData, id };
+            } else {
+                const newId = await db.apiProxies.add(proxyData);
+                state.proxies.push({ ...proxyData, id: newId });
+            }
+            renderProxyList();
+            modal.classList.remove('visible');
+        }
+
+        function renderProxyList() {
+            const list = document.getElementById('proxy-list');
+            list.innerHTML = '';
+            state.proxies.forEach(p => {
                 const item = document.createElement('div');
                 item.className = 'list-item-setting';
                 item.innerHTML = `
-                    <div class="name">${c.name} (${c.code})</div>
-                    <div class="details">1 ${c.code} ≈ ${c.rate} RMB</div>
+                    <div class="name">${p.name}</div>
+                    <div class="details">${p.url} | Models: ${p.models.join(', ')}</div>
                     <div class="list-item-actions">
-                        <button class="edit-currency" data-code="${c.code}">✏️</button>
-                        <button class="delete-currency" data-code="${c.code}">🗑️</button>
-                    </div>`;
-                item.querySelector('.edit-currency').addEventListener('click', () => openCurrencyEditor(c.code));
-                item.querySelector('.delete-currency').addEventListener('click', () => deleteCurrency(c.code));
+                        <button class="edit-btn">✏️</button>
+                        <button class="delete-btn">🗑️</button>
+                    </div>
+                `;
+                item.querySelector('.edit-btn').addEventListener('click', () => openProxyEditor(p.id));
+                item.querySelector('.delete-btn').addEventListener('click', async () => {
+                    if (confirm(`确定要删除 "${p.name}" 吗？`)) {
+                        await db.apiProxies.delete(p.id);
+                        state.proxies = state.proxies.filter(proxy => proxy.id !== p.id);
+                        renderProxyList();
+                    }
+                });
                 list.appendChild(item);
             });
         }
+        
+        function openCharacterEditor(id = null) {
+            const modal = document.getElementById('character-editor-modal');
+            const title = document.getElementById('character-editor-title');
+            const nameInput = document.getElementById('character-editor-name');
+            const promptInput = document.getElementById('character-editor-prompt');
+            const avatarPreview = document.getElementById('character-editor-avatar-preview');
+            const proxySelect = document.getElementById('character-editor-proxy');
+            const modelSelect = document.getElementById('character-editor-model');
+            const backupProxySelect = document.getElementById('character-editor-backup-proxy');
+            const backupModelSelect = document.getElementById('character-editor-backup-model');
+
+            modal.dataset.id = id || '';
+            populateProxySelects();
+            
+            if (id) {
+                const char = state.characters.find(c => c.id === id);
+                title.textContent = '编辑角色';
+                nameInput.value = char.name;
+                promptInput.value = char.prompt;
+                avatarPreview.src = char.avatar || DEFAULT_AVATAR;
+                proxySelect.value = char.proxyId || '';
+                updateModelSelect(proxySelect, modelSelect, char.model);
+                backupProxySelect.value = char.backupProxyId || '';
+                updateModelSelect(backupProxySelect, backupModelSelect, char.backupModel);
+            } else {
+                title.textContent = '添加新角色';
+                nameInput.value = ''; promptInput.value = ''; avatarPreview.src = DEFAULT_AVATAR;
+                proxySelect.value = ''; backupProxySelect.value = '';
+                updateModelSelect(proxySelect, modelSelect);
+                updateModelSelect(backupProxySelect, backupModelSelect);
+            }
+            modal.classList.add('visible');
+        }
+
+        document.getElementById('upload-char-avatar-btn').addEventListener('click', () => document.getElementById('character-editor-avatar-input').click());
+        document.getElementById('character-editor-avatar-input').addEventListener('change', (e) => {
+            handleAvatarUpload(e, (base64) => { document.getElementById('character-editor-avatar-preview').src = base64; });
+        });
+        
+        async function saveCharacter() {
+            const modal = document.getElementById('character-editor-modal');
+            const id = modal.dataset.id ? parseInt(modal.dataset.id) : null;
+            const name = document.getElementById('character-editor-name').value.trim();
+            if (!name) { alert('角色名称是必填项'); return; }
+
+            const charData = {
+                name: name,
+                prompt: document.getElementById('character-editor-prompt').value.trim(),
+                avatar: document.getElementById('character-editor-avatar-preview').src,
+                proxyId: parseInt(document.getElementById('character-editor-proxy').value) || null,
+                model: document.getElementById('character-editor-model').value,
+                backupProxyId: parseInt(document.getElementById('character-editor-backup-proxy').value) || null,
+                backupModel: document.getElementById('character-editor-backup-model').value
+            };
+
+            if (id) {
+                await db.aiCharacters.update(id, charData);
+                const index = state.characters.findIndex(c => c.id === id);
+                state.characters[index] = { ...charData, id };
+            } else {
+                const newId = await db.aiCharacters.add(charData);
+                state.characters.push({ ...charData, id: newId });
+            }
+            renderCharacterList();
+            modal.classList.remove('visible');
+        }
+
+        function renderCharacterList() {
+            const list = document.getElementById('character-list');
+            list.innerHTML = '';
+            state.characters.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'list-item-setting';
+                const mainProxy = state.proxies.find(p => p.id === c.proxyId);
+                const details = mainProxy ? `${mainProxy.name} - ${c.model}` : '未配置API';
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="${c.avatar || DEFAULT_AVATAR}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                        <div>
+                            <div class="name">${c.name}</div>
+                            <div class="details">${details}</div>
+                        </div>
+                    </div>
+                    <div class="list-item-actions">
+                        <button class="edit-btn">✏️</button>
+                        <button class="delete-btn">🗑️</button>
+                    </div>
+                `;
+                item.querySelector('.edit-btn').addEventListener('click', () => openCharacterEditor(c.id));
+                item.querySelector('.delete-btn').addEventListener('click', async () => {
+                    if (confirm(`确定要删除角色 "${c.name}" 吗？`)) {
+                        await db.aiCharacters.delete(c.id);
+                        state.characters = state.characters.filter(char => char.id !== c.id);
+                        renderCharacterList();
+                    }
+                });
+                list.appendChild(item);
+            });
+        }
+        
+        function populateProxySelects() {
+            const selects = [document.getElementById('character-editor-proxy'), document.getElementById('character-editor-backup-proxy')];
+            selects.forEach(select => {
+                select.innerHTML = `<option value="">-- 选择API --</option>`;
+                state.proxies.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function updateModelSelect(proxySelect, modelSelect, selectedModel) {
+            const proxyId = proxySelect.value ? parseInt(proxySelect.value) : null;
+            const proxy = state.proxies.find(p => p.id === proxyId);
+            modelSelect.innerHTML = `<option value="">-- 选择模型 --</option>`;
+            if (proxy) {
+                proxy.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            }
+            if (selectedModel) modelSelect.value = selectedModel;
+        }
+
+        document.getElementById('character-editor-proxy').addEventListener('change', (e) => updateModelSelect(e.target, document.getElementById('character-editor-model')));
+        document.getElementById('character-editor-backup-proxy').addEventListener('change', (e) => updateModelSelect(e.target, document.getElementById('character-editor-backup-model')));
+
+        function showAICharacterSelector() {
+            const modal = document.getElementById('ai-character-selector-modal');
+            const selector = document.getElementById('ai-character-selector');
+            selector.innerHTML = '';
+            if (state.characters.length === 0) {
+                selector.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">请先在“设置”页面添加AI角色。</p>';
+            } else {
+                state.characters.forEach(char => {
+                    const item = document.createElement('div');
+                    item.className = 'character-item';
+                    item.innerHTML = `<img src="${char.avatar || DEFAULT_AVATAR}" alt="${char.name}"><span class="name">${char.name}</span>`;
+                    item.addEventListener('click', () => {
+                        modal.classList.remove('visible');
+                        triggerAIResponse(char);
+                    });
+                    selector.appendChild(item);
+                });
+            }
+            modal.classList.add('visible');
+        }
+
         function openCurrencyEditor(code = null) {
-            editingCurrencyCode = code;
             const modal = document.getElementById('currency-editor-modal');
             const title = document.getElementById('currency-editor-title');
             const codeInput = document.getElementById('currency-editor-code');
             const nameInput = document.getElementById('currency-editor-name');
             const rateInput = document.getElementById('currency-editor-rate');
-
+            
+            modal.dataset.code = code || '';
             if (code) {
                 const currency = state.currencies.find(c => c.code === code);
                 title.textContent = '编辑币种';
@@ -3031,111 +3247,112 @@
                 title.textContent = '添加新币种';
                 codeInput.value = '';
                 codeInput.readOnly = false;
-                nameInput.value = '';
-                rateInput.value = '';
+                nameInput.value = ''; rateInput.value = '';
             }
             modal.classList.add('visible');
         }
+
         async function saveCurrency() {
-            const codeInput = document.getElementById('currency-editor-code');
-            const nameInput = document.getElementById('currency-editor-name');
-            const rateInput = document.getElementById('currency-editor-rate');
+            const modal = document.getElementById('currency-editor-modal');
+            const originalCode = modal.dataset.code;
+            const code = document.getElementById('currency-editor-code').value.trim().toUpperCase();
+            const name = document.getElementById('currency-editor-name').value.trim();
+            const rate = parseFloat(document.getElementById('currency-editor-rate').value);
 
-            const code = codeInput.value.trim().toUpperCase();
-            const name = nameInput.value.trim();
-            const rate = parseFloat(rateInput.value);
-
-            if (!/^[A-Z]{3}$/.test(code)) { alert('币种代码必须是3个大写字母！'); return; }
-            if (!name) { alert('请输入币种名称！'); return; }
-            if (isNaN(rate) || rate <= 0) { alert('请输入有效的汇率！'); return; }
-            if (code === 'RMB') { alert('RMB是基础币种，不能添加！'); return; }
+            if (!/^[A-Z]{3}$/.test(code)) { alert('币种代码必须是3位大写字母'); return; }
+            if (!name || isNaN(rate) || rate <= 0) { alert('请填写有效的名称和汇率'); return; }
 
             const currencyData = { code, name, rate };
-            await db.currencies.put(currencyData);
-            
-            state.currencies = await db.currencies.toArray();
+            if (originalCode) { // Editing
+                await db.currencies.put(currencyData);
+                const index = state.currencies.findIndex(c => c.code === originalCode);
+                state.currencies[index] = currencyData;
+            } else { // Adding
+                if (state.currencies.some(c => c.code === code) || code === 'RMB') { alert('该币种代码已存在'); return; }
+                await db.currencies.add(currencyData);
+                state.currencies.push(currencyData);
+            }
             renderCurrencyList();
             populateLedgerCurrencyFilter();
-            document.getElementById('currency-editor-modal').classList.remove('visible');
-        }
-        async function deleteCurrency(code) {
-            if (confirm(`确定要删除币种 ${code} 吗？`)) {
-                await db.currencies.delete(code);
-                state.currencies = state.currencies.filter(c => c.code !== code);
-                renderCurrencyList();
-                populateLedgerCurrencyFilter();
-            }
+            modal.classList.remove('visible');
         }
         
-        function openSystemPromptsEditor() {
-            const { systemPromptSettings } = state.config;
-            document.getElementById('system-prompt-send-time').checked = systemPromptSettings.sendTime;
-            document.getElementById('system-prompt-send-model').checked = systemPromptSettings.sendModel;
-            document.getElementById('system-prompt-send-role').checked = systemPromptSettings.sendRole;
-            document.getElementById('system-prompt-ledger').value = systemPromptSettings.ledger;
-            document.getElementById('system-prompt-schedule').value = systemPromptSettings.schedule;
-            document.getElementById('system-prompt-pie').value = systemPromptSettings.pie;
+        function renderCurrencyList() {
+            const list = document.getElementById('currency-list');
+            list.innerHTML = '';
+            state.currencies.forEach(c => {
+                const item = document.createElement('div');
+                item.className = 'list-item-setting';
+                item.innerHTML = `
+                    <div class="name">${c.name} (${c.code})</div>
+                    <div class="details">1 ${c.code} = ${c.rate} RMB</div>
+                    <div class="list-item-actions">
+                        <button class="edit-btn">✏️</button>
+                        <button class="delete-btn">🗑️</button>
+                    </div>
+                `;
+                item.querySelector('.edit-btn').addEventListener('click', () => openCurrencyEditor(c.code));
+                item.querySelector('.delete-btn').addEventListener('click', async () => {
+                    if (confirm(`确定要删除 "${c.name}" 吗？`)) {
+                        await db.currencies.delete(c.code);
+                        state.currencies = state.currencies.filter(curr => curr.code !== c.code);
+                        renderCurrencyList();
+                        populateLedgerCurrencyFilter();
+                    }
+                });
+                list.appendChild(item);
+            });
         }
 
-        function saveSystemPrompts() {
+        function openSystemPromptsEditor() {
+            const { sendTime, sendModel, sendRole, ledger, schedule, pie } = state.config.systemPromptSettings;
+            document.getElementById('system-prompt-send-time').checked = sendTime;
+            document.getElementById('system-prompt-send-model').checked = sendModel;
+            document.getElementById('system-prompt-send-role').checked = sendRole;
+            document.getElementById('system-prompt-ledger').value = ledger;
+            document.getElementById('system-prompt-schedule').value = schedule;
+            document.getElementById('system-prompt-pie').value = pie;
+        }
+
+        async function saveSystemPrompts() {
             const newSettings = {
                 sendTime: document.getElementById('system-prompt-send-time').checked,
                 sendModel: document.getElementById('system-prompt-send-model').checked,
                 sendRole: document.getElementById('system-prompt-send-role').checked,
                 ledger: document.getElementById('system-prompt-ledger').value,
                 schedule: document.getElementById('system-prompt-schedule').value,
-                pie: document.getElementById('system-prompt-pie').value,
+                pie: document.getElementById('system-prompt-pie').value
             };
-            updateConfig('systemPromptSettings', newSettings);
-            alert('系统提示词设置已保存！');
+            await updateConfig('systemPromptSettings', newSettings);
+            alert('系统提示词已保存！');
             document.getElementById('system-prompts-modal').classList.remove('visible');
         }
 
+        // --- Sidebar ---
         function toggleSidebar() {
-            cancelCurrentEdit();
-            const isVisible = ELS.sidebar.classList.contains('visible');
-            if (!isVisible) {
-                const { tokens } = buildContext(state.config.maxTokens || 4096);
-                ELS.sidebarTokenCount.textContent = tokens;
-                ELS.sidebarPreviewContent.style.display = 'none'; 
-                ELS.previewContextBtn.textContent = '预览上下文';
-            }
             ELS.sidebar.classList.toggle('visible');
             ELS.sidebarOverlay.classList.toggle('visible');
+            if (ELS.sidebar.classList.contains('visible')) {
+                updateSidebarInfo();
+            }
         }
-
+        function updateSidebarInfo() {
+            const { tokens } = buildContext(state.config.maxTokens || 4096);
+            ELS.sidebarTokenCount.textContent = tokens;
+        }
         function toggleContextPreview() {
-            const isVisible = ELS.sidebarPreviewContent.style.display === 'block';
-            if (isVisible) {
-                ELS.sidebarPreviewContent.style.display = 'none';
+            const previewEl = ELS.sidebarPreviewContent;
+            if (previewEl.style.display === 'block') {
+                previewEl.style.display = 'none';
                 ELS.previewContextBtn.textContent = '预览上下文';
             } else {
                 const { context } = buildContext(state.config.maxTokens || 4096);
-                const now = new Date();
-                const formattedDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                
-                const { sendTime, sendModel, sendRole } = state.config.systemPromptSettings;
-                let systemInfo = "[System Info]\n";
-                if (sendModel) systemInfo += `- Current Model: PREVIEW_MODEL\n`;
-                if (sendTime) systemInfo += `- Current Time: ${formattedDateTime}\n`;
-                if (sendRole) systemInfo += `- Your Role: PREVIEW_ROLE\n`;
-                systemInfo += `\n---\n\n`;
-
-                const systemPromptForPreview = systemInfo + 'PREVIEW_SYSTEM_PROMPT';
-                
-                const previewPayload = {
-                    model: "PREVIEW_MODEL",
-                    messages: [
-                        { role: 'system', content: systemPromptForPreview },
-                        ...context
-                    ]
-                };
-                ELS.sidebarPreviewContent.textContent = JSON.stringify(previewPayload, null, 2);
-                ELS.sidebarPreviewContent.style.display = 'block';
-                ELS.previewContextBtn.textContent = '隐藏预览';
+                previewEl.textContent = JSON.stringify(context, null, 2);
+                previewEl.style.display = 'block';
+                ELS.previewContextBtn.textContent = '收起预览';
             }
         }
-
+        
         init();
     });
     </script>
