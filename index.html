@@ -416,7 +416,7 @@
 
         /* Transaction, Schedule & Summary Message Cards */
         .message-bubble.transaction .content, .message-bubble.schedule .content,
-        .message-bubble.ledger_summary .content, .message-bubble.schedule_summary .content { padding: 0; background: transparent; box-shadow: none; }
+        .message-bubble.ledger_summary .content, .message-bubble.schedule_summary .content, .message-bubble.pie_chart_summary .content { padding: 0; background: transparent; box-shadow: none; }
         .transaction-card, .schedule-card, .summary-card { width: 220px; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 12px var(--shadow-medium); background: var(--bg-secondary); }
         .transaction-header, .schedule-header, .summary-header { padding: 10px 15px; display: flex; align-items: center; gap: 10px; color: var(--text-light); }
         .transaction-header.expense { background-color: var(--expense-color); }
@@ -776,18 +776,23 @@
         .empty-state { text-align: center; padding: 20px; color: var(--text-secondary); }
 
         /* Ledger Page */
-        #ledger-screen .page-content { flex-grow: 1; overflow: hidden; padding: 0; }
-        .ledger-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 0 15px 15px; border-bottom: 1px solid var(--border-color); }
+        #ledger-screen .page-content { flex-grow: 1; overflow: hidden; padding: 0 0 15px 0; display: flex; flex-direction: column; }
+        .ledger-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 15px 15px 15px; border-bottom: 1px solid var(--border-color); }
+        .ledger-controls .filter-btn { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; cursor: pointer; }
         .ledger-controls select { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; }
-        #toggle-ledger-view-btn { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 18px; line-height: 1; cursor: pointer; }
-
-        #ledger-view-wrapper { display: flex; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .ledger-footer-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: 15px; }
+        #toggle-ledger-view-btn { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 18px; line-height: 1; cursor: pointer; height: 34px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+        #ledger-currency { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; height: 34px; box-sizing: border-box; display: flex; align-items: center; }
+        
+        #ledger-view-wrapper { display: flex; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); flex-grow: 1; }
         #ledger-list-view, #ledger-chart-view { width: 100%; height: 100%; overflow-y: auto; flex-shrink: 0; box-sizing: border-box; }
-        #ledger-list-view { padding: 15px; }
-        #ledger-chart-view { padding: 15px; display: flex; flex-direction: column; gap: 20px; position: relative; }
+        #ledger-list-view { padding: 15px 15px 0; }
+        #ledger-chart-view { padding: 15px 15px 0; display: flex; flex-direction: column; gap: 20px; position: relative; }
         
         .pie-chart-area { width: 100%; }
-        .pie-chart-title { text-align: center; margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .pie-chart-title-wrapper { text-align: center; margin: 0 0 10px 0; }
+        .pie-chart-subtitle { font-size: 12px; color: var(--text-secondary); font-weight: normal; margin: 0; }
+        .pie-chart-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0; }
         .pie-chart-area svg { width: 100%; max-width: 300px; margin: 0 auto; display: block; aspect-ratio: 1; }
         .pie-chart-area svg path { stroke: var(--bg-main); stroke-width: 2px; cursor: pointer; transition: transform 0.2s ease-out; transform-origin: center center; }
         .pie-chart-area svg path.active { transform: scale(1.05); }
@@ -814,7 +819,8 @@
         .legend-color-box { width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; }
         
         #ledger-list { list-style: none; padding: 0; margin: 0; }
-        .ledger-item { background-color: var(--bg-secondary); border-radius: 12px; margin-bottom: 12px; padding: 12px 15px; display: flex; align-items: center; box-shadow: 0 2px 5px var(--shadow-light); }
+        .ledger-item { background-color: var(--bg-secondary); border-radius: 12px; margin-bottom: 12px; padding: 12px 15px; display: flex; align-items: center; box-shadow: 0 2px 5px var(--shadow-light); cursor: pointer; transition: transform 0.2s; }
+        .ledger-item:active { transform: scale(0.98); }
         .ledger-item .icon { font-size: 28px; margin-right: 15px; }
         .ledger-item .details { flex-grow: 1; }
         .ledger-item .details .remark { font-weight: 500; margin-bottom: 4px; }
@@ -961,6 +967,27 @@
             margin-top: 10px;
             display: none;
         }
+        
+        /* System Prompt Toggle Switch */
+        .toggle-switch { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .toggle-switch label { font-size: 16px; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--accent-primary); transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-secondary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Ledger Filter Modals */
+        #ledger-month-filter-modal .modal-body, #ledger-category-filter-modal .modal-body { padding: 0; }
+        .filter-list { max-height: 50vh; overflow-y: auto; }
+        .filter-item { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+        .filter-item:last-child { border-bottom: none; }
+        .filter-item input[type="checkbox"] { margin-right: 12px; width: 18px; height: 18px; accent-color: var(--accent-secondary); }
+        .filter-item label { flex-grow: 1; }
+        .filter-tabs { display: flex; border-bottom: 1px solid var(--border-color); }
+        .filter-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; background-color: var(--bg-soft); color: var(--text-secondary); }
+        .filter-tab.active { background-color: var(--bg-main); color: var(--text-primary); font-weight: bold; }
     </style>
 </head>
 <body data-theme="default">
@@ -1010,13 +1037,12 @@
                  <div class="header">
                     <div class="left-action"></div>
                     <div class="center-title"><span>我的账本</span></div>
-                    <div class="right-action"><span class="action-btn" id="forward-ledger-btn">↺</span></div>
+                    <div class="right-action"><span class="action-btn" id="forward-ledger-btn">➣</span></div>
                  </div>
                 <div class="ledger-controls">
-                    <select id="ledger-filter-category"><option value="all">所有分类</option></select>
-                    <select id="ledger-currency"></select>
+                    <button class="filter-btn" id="ledger-month-filter-btn">月份筛选</button>
+                    <button class="filter-btn" id="ledger-category-filter-btn">分类筛选</button>
                     <select id="ledger-sort"><option value="time_desc">时间倒序</option><option value="time_asc">时间正序</option><option value="amount_desc">金额倒序</option><option value="amount_asc">金额正序</option></select>
-                    <button id="toggle-ledger-view-btn">📊</button>
                 </div>
                 <div class="page-content" id="ledger-page-content">
                     <div id="ledger-view-wrapper">
@@ -1027,17 +1053,27 @@
                         <div id="ledger-chart-view">
                             <div id="pie-chart-tooltip"></div>
                             <div class="pie-chart-area">
-                                <h3 class="pie-chart-title">支出</h3>
+                                <div class="pie-chart-title-wrapper">
+                                    <p class="pie-chart-subtitle" id="expense-pie-subtitle"></p>
+                                    <h3 class="pie-chart-title">支出</h3>
+                                </div>
                                 <svg id="expense-pie-chart"></svg>
                                 <div class="pie-legend" id="expense-pie-legend"></div>
                             </div>
                             <div class="pie-chart-area">
-                                <h3 class="pie-chart-title">收入</h3>
+                                <div class="pie-chart-title-wrapper">
+                                    <p class="pie-chart-subtitle" id="income-pie-subtitle"></p>
+                                    <h3 class="pie-chart-title">收入</h3>
+                                </div>
                                 <svg id="income-pie-chart"></svg>
                                 <div class="pie-legend" id="income-pie-legend"></div>
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="ledger-footer-controls">
+                    <select id="ledger-currency"></select>
+                    <button id="toggle-ledger-view-btn">📊</button>
                 </div>
             </div>
 
@@ -1046,7 +1082,7 @@
                 <div class="header">
                     <div class="left-action"></div>
                     <div class="center-title"><span>我的日程</span></div>
-                    <div class="right-action"><span class="action-btn" id="forward-schedule-btn">↺</span></div>
+                    <div class="right-action"><span class="action-btn" id="forward-schedule-btn">➣</span></div>
                 </div>
                 <div class="page-content">
                     <div class="schedule-section">
@@ -1118,6 +1154,7 @@
                         <div class="setting-group-title">AI 设置</div>
                         <div class="form-group"><label for="max-tokens-input">最大上下文长度 (Token)</label><input type="number" id="max-tokens-input" placeholder="建议 4000-8000"></div>
                         <p style="font-size:12px; color: var(--text-secondary); margin-top:-10px; margin-bottom: 15px;">此设置用于限制发送给AI的聊天记录长度，防止超出模型限制。1个汉字约等于2个Token。</p>
+                        <button class="form-button secondary" id="manage-system-prompts-btn">管理系统提示词</button>
                         <button class="form-button secondary" id="manage-proxies-btn">管理API反代</button>
                         <button class="form-button secondary" id="manage-characters-btn">管理AI角色</button>
                     </div>
@@ -1139,7 +1176,10 @@
 
         <!-- Transaction Input Panel -->
         <div id="transaction-panel">
-            <div class="panel-header"><span class="close-btn" id="close-transaction-panel">×</span></div>
+            <div class="panel-header">
+                <span class="close-btn" id="close-transaction-panel">×</span>
+                <span style="font-weight: 600;" id="transaction-panel-title">新建记账</span>
+            </div>
             <div id="amount-display-container"><span id="currency-selector">RMB</span><div id="amount-display">0.00</div></div>
             <div class="type-selector"><button id="type-expense-btn" class="active">支出</button><button id="type-income-btn">收入</button></div>
             <div id="category-selector"></div>
@@ -1153,7 +1193,7 @@
         <div id="schedule-panel">
             <div class="panel-header">
                 <span class="close-btn" id="close-schedule-panel">×</span>
-                <span style="font-weight: 600;">新建日程</span>
+                <span style="font-weight: 600;" id="schedule-panel-title">新建日程</span>
             </div>
             <div class="schedule-form">
                 <div class="schedule-form-section red">
@@ -1221,6 +1261,9 @@
     <div id="cropper-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">裁剪头像</div><div class="modal-body"><div id="cropper-image-container"><img id="cropper-image"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">确定</button></div></div></div>
     <div id="currency-list-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">管理币种</div><div class="modal-body"><div id="currency-list"></div><button class="form-button" id="add-currency-btn">＋ 添加新币种</button></div><div class="modal-footer"><button class="cancel-btn" id="close-currency-list-modal">关闭</button></div></div></div>
     <div id="currency-editor-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header" id="currency-editor-title">编辑币种</div><div class="modal-body"><div class="form-group"><label>币种代码 (3位大写字母)</label><input type="text" id="currency-editor-code" placeholder="例如: HKD, USD" maxlength="3" style="text-transform:uppercase;"></div><div class="form-group"><label>币种名称</label><input type="text" id="currency-editor-name" placeholder="例如: 港币, 美元"></div><div class="form-group"><label>对 RMB 的汇率 (1 币种 = ? RMB)</label><input type="number" id="currency-editor-rate" placeholder="例如: 0.92"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">保存</button></div></div></div>
+    <div id="system-prompts-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">管理系统提示词</div><div class="modal-body"><div class="setting-group" style="margin-bottom: 15px;"><div class="setting-group-title" style="margin-bottom: 10px;">附加信息</div><div class="toggle-switch"><label for="system-prompt-send-time">发送当前时间</label><label class="switch"><input type="checkbox" id="system-prompt-send-time"><span class="slider"></span></label></div><div class="toggle-switch"><label for="system-prompt-send-model">发送当前模型</label><label class="switch"><input type="checkbox" id="system-prompt-send-model"><span class="slider"></span></label></div><div class="toggle-switch"><label for="system-prompt-send-role">发送AI角色名</label><label class="switch"><input type="checkbox" id="system-prompt-send-role"><span class="slider"></span></label></div></div><div class="setting-group"><div class="setting-group-title">同步提示词模板</div><div class="form-group" style="margin-bottom: 10px;"><label for="system-prompt-ledger">同步账本</label><textarea id="system-prompt-ledger" rows="2"></textarea></div><div class="form-group" style="margin-bottom: 10px;"><label for="system-prompt-schedule">同步日程</label><textarea id="system-prompt-schedule" rows="2"></textarea></div><div class="form-group"><label for="system-prompt-pie">同步饼图</label><textarea id="system-prompt-pie" rows="2"></textarea></div></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">保存</button></div></div></div>
+    <div id="ledger-month-filter-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">选择月份</div><div class="modal-body"><div class="filter-list" id="month-filter-list"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">确定</button></div></div></div>
+    <div id="ledger-category-filter-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">选择分类</div><div class="modal-body"><div class="filter-tabs"><div class="filter-tab active" data-type="expense">支出</div><div class="filter-tab" data-type="income">收入</div></div><div class="filter-list" id="category-filter-list"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">确定</button></div></div></div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -1235,14 +1278,25 @@
             schedules: '++id, timestamp, title, description, importance, deadline, eventType, completed'
         });
 
+        const DEFAULT_SYSTEM_PROMPTS = {
+            sendTime: true,
+            sendModel: true,
+            sendRole: true,
+            ledger: '这是我的完整账本数据，请你帮我分析一下：{data}',
+            schedule: '这是我的完整日程数据，请你帮我分析一下：{data}',
+            pie: '这是我筛选出的账本数据，请你帮我分析一下：{data}'
+        };
+
         let state = {
             config: {}, proxies: [], characters: [], messages: [], transactions: [], currencies: [], schedules: [],
             currentTransaction: { type: 'expense', category: null, amountStr: '0', currency: 'RMB' },
             currentSchedule: {},
             calendarState: { year: new Date().getFullYear(), month: new Date().getMonth(), selectedDate: null },
+            ledgerFilters: { months: [], type: 'expense', categories: [] },
             isSelectionMode: false,
             selectedMessages: new Set(),
             currentlyEditingMsgId: null,
+            currentlyEditingTransactionId: null,
             currentlyEditingScheduleId: null,
         };
         
@@ -1255,7 +1309,7 @@
             schedulePanel: document.getElementById('schedule-panel'),
             amountDisplay: document.getElementById('amount-display'), categorySelector: document.getElementById('category-selector'),
             ledgerList: document.getElementById('ledger-list'), ledgerSummary: document.getElementById('ledger-summary'),
-            ledgerFilterCategory: document.getElementById('ledger-filter-category'), ledgerSort: document.getElementById('ledger-sort'),
+            ledgerSort: document.getElementById('ledger-sort'),
             ledgerCurrency: document.getElementById('ledger-currency'),
             themeSelectors: document.querySelectorAll('input[name="theme"]'),
             sidebar: document.getElementById('chat-sidebar'),
@@ -1289,7 +1343,8 @@
             const [config, proxies, characters, messages, transactions, currencies, schedules] = await Promise.all([
                 db.appConfig.get('main'), db.apiProxies.toArray(), db.aiCharacters.toArray(), db.messages.orderBy('timestamp').toArray(), db.transactions.orderBy('timestamp').toArray(), db.currencies.toArray(), db.schedules.toArray(),
             ]);
-            state.config = config || { id: 'main', chatName: 'Cava记事本1.0beta', chatAvatar: DEFAULT_AVATAR, maxTokens: 4096, background: '', theme: 'default', userId: '', userGender: '', userBio: '' };
+            const baseConfig = { id: 'main', chatName: 'Cava记事本1.0beta', chatAvatar: DEFAULT_AVATAR, maxTokens: 4096, background: '', theme: 'default', userId: '', userGender: '', userBio: '', systemPromptSettings: DEFAULT_SYSTEM_PROMPTS };
+            state.config = { ...baseConfig, ...config, systemPromptSettings: { ...DEFAULT_SYSTEM_PROMPTS, ...(config ? config.systemPromptSettings : {}) } };
             state.proxies = proxies; state.characters = characters; state.messages = messages; state.transactions = transactions; state.schedules = schedules || [];
             
             if (currencies.length === 0) {
@@ -1373,7 +1428,9 @@
             setupSchedulePanelListeners();
             setupCalendarModalListeners();
             
-            ELS.ledgerFilterCategory.addEventListener('change', renderLedger);
+            // Ledger page listeners
+            document.getElementById('ledger-month-filter-btn').addEventListener('click', openMonthFilterModal);
+            document.getElementById('ledger-category-filter-btn').addEventListener('click', openCategoryFilterModal);
             ELS.ledgerSort.addEventListener('change', renderLedger);
             ELS.ledgerCurrency.addEventListener('change', renderLedger);
             document.getElementById('forward-ledger-btn').addEventListener('click', forwardLedgerToChat);
@@ -1382,12 +1439,16 @@
             setupModal('manage-proxies-btn', 'api-proxy-modal', 'close-proxy-modal', renderProxyList);
             setupModal('manage-characters-btn', 'ai-character-modal', 'close-character-modal', renderCharacterList);
             setupModal('manage-currencies-btn', 'currency-list-modal', 'close-currency-list-modal', renderCurrencyList);
+            setupModal('manage-system-prompts-btn', 'system-prompts-modal', null, openSystemPromptsEditor);
             document.getElementById('add-proxy-btn').addEventListener('click', () => openProxyEditor());
             document.getElementById('add-character-btn').addEventListener('click', () => openCharacterEditor());
             document.getElementById('add-currency-btn').addEventListener('click', () => openCurrencyEditor());
             setupEditorModal('proxy-editor-modal', saveProxy);
             setupEditorModal('character-editor-modal', saveCharacter);
             setupEditorModal('currency-editor-modal', saveCurrency);
+            setupEditorModal('system-prompts-modal', saveSystemPrompts);
+            setupEditorModal('ledger-month-filter-modal', () => { applyLedgerFilters(); document.getElementById('ledger-month-filter-modal').classList.remove('visible'); });
+            setupEditorModal('ledger-category-filter-modal', () => { applyLedgerFilters(); document.getElementById('ledger-category-filter-modal').classList.remove('visible'); });
             setupEditorModal('cropper-modal', null); 
             setupModal(null, 'ai-character-selector-modal', null, null);
             setupModal(null, 'message-action-menu', null);
@@ -1447,6 +1508,14 @@
                     document.getElementById('toggle-ledger-view-btn').textContent = '📊';
                 }
             });
+            
+            // Ledger list item click for editing
+            ELS.ledgerList.addEventListener('click', (e) => {
+                const item = e.target.closest('.ledger-item');
+                if (item && item.dataset.id) {
+                    showTransactionPanel(parseInt(item.dataset.id));
+                }
+            });
         }
         
         function togglePlusMenu() { ELS.plusMenu.classList.toggle('visible'); }
@@ -1504,8 +1573,15 @@
                 userProfileString += '\n';
             }
 
-            const systemPrefix = `${userProfileString}[System Info]\n- Current Model: ${character.model}\n- Current Time: ${formattedDateTime}\n- Your Role: ${character.name}\n\n---\n\n`;
-            const systemPrompt = systemPrefix + `${character.prompt}\n\n你的任务是作为聊天伙伴对用户的记账和聊天内容做出回应。你的回应需要符合你的人设。如果用户发了图片，你要像能看到一样进行评论。请自然地进行对话。你可以一次性发送多条消息，用 // 分隔。例如: "你好呀//今天过得怎么样？"。`;
+            const { sendTime, sendModel, sendRole } = state.config.systemPromptSettings;
+            let systemInfo = "[System Info]\n";
+            if (sendModel) systemInfo += `- Current Model: ${character.model}\n`;
+            if (sendTime) systemInfo += `- Current Time: ${formattedDateTime}\n`;
+            if (sendRole) systemInfo += `- Your Role: ${character.name}\n`;
+            systemInfo += `\n---\n\n`;
+            
+            const systemPrefix = userProfileString + systemInfo;
+            const systemPrompt = systemPrefix + `${character.prompt}\n\n你的任务是作为聊天伙伴对用户的记账和聊天内容做出回应。你的回应需要符合你的人设。如果用户发了图片，你要像能看到一样进行评论。请自然地进行对话。你可以一次性发送多条消息，用换行（\\n）分隔。例如: "你好呀\\n今天过得怎么样？"。`;
             const history = buildContext(state.config.maxTokens || 4096).context;
             const thinkingBubbleId = addThinkingBubble(character);
             
@@ -1526,8 +1602,13 @@
                     
                     try {
                         await new Promise(resolve => setTimeout(resolve, 1000)); 
-                        const backupSystemPrefix = `${userProfileString}[System Info]\n- Current Model: ${character.backupModel}\n- Current Time: ${formattedDateTime}\n- Your Role: ${character.name}\n\n---\n\n`;
-                        const backupSystemPrompt = backupSystemPrefix + `${character.prompt}\n\n你的任务是作为聊天伙伴对用户的记账和聊天内容做出回应。你的回应需要符合你的人设。如果用户发了图片，你要像能看到一样进行评论。请自然地进行对话。你可以一次性发送多条消息，用 // 分隔。例如: "你好呀//今天过得怎么样？"。`;
+                        let backupSystemInfo = "[System Info]\n";
+                        if (sendModel) backupSystemInfo += `- Current Model: ${character.backupModel}\n`;
+                        if (sendTime) backupSystemInfo += `- Current Time: ${formattedDateTime}\n`;
+                        if (sendRole) backupSystemInfo += `- Your Role: ${character.name}\n`;
+                        backupSystemInfo += `\n---\n\n`;
+                        const backupSystemPrefix = userProfileString + backupSystemInfo;
+                        const backupSystemPrompt = backupSystemPrefix + `${character.prompt}\n\n你的任务是作为聊天伙伴对用户的记账和聊天内容做出回应。你的回应需要符合你的人设。如果用户发了图片，你要像能看到一样进行评论。请自然地进行对话。你可以一次性发送多条消息，用换行（\\n）分隔。例如: "你好呀\\n今天过得怎么样？"。`;
                         responseText = await callAPI(backupProxy, backupSystemPrompt, history, character.backupModel);
                         await processAIResponse(responseText, thinkingBubbleId, character);
                     } catch (backupError) {
@@ -1541,7 +1622,7 @@
         }
         
         async function processAIResponse(text, bubbleId, character) {
-            const aiReplies = text.split('//').map(r => r.trim()).filter(Boolean);
+            const aiReplies = text.split('\n').map(r => r.trim()).filter(Boolean);
             if (aiReplies.length > 0) {
                 await updateThinkingBubble(bubbleId, aiReplies[0], character.id);
                 for (let i = 1; i < aiReplies.length; i++) {
@@ -1553,6 +1634,8 @@
         
         function buildContext(maxTokens) {
             let context = []; let currentTokens = 0; const reversedMessages = [...state.messages].reverse();
+            const { systemPromptSettings } = state.config;
+
             for (const msg of reversedMessages) {
                 let content; let msgTokens = 0;
                 const role = msg.role === 'assistant' ? 'assistant' : 'user';
@@ -1574,10 +1657,15 @@
                     content = [{ type: "image_url", image_url: { url: msg.content } }];
                     msgTokens = 1000; 
                 } else if (msg.type === 'ledger_summary') {
-                    content = `[用户分享了TA的完整账本数据，内容如下: ${JSON.stringify(state.transactions)}]`;
+                    const data = JSON.stringify(getFilteredTransactions().filtered);
+                    content = (systemPromptSettings.ledger || DEFAULT_SYSTEM_PROMPTS.ledger).replace('{data}', data);
                     msgTokens = content.length * 2;
                 } else if (msg.type === 'schedule_summary') {
-                    content = `[用户分享了TA的完整日程数据，内容如下: ${JSON.stringify(state.schedules)}]`;
+                    const data = JSON.stringify(state.schedules);
+                    content = (systemPromptSettings.schedule || DEFAULT_SYSTEM_PROMPTS.schedule).replace('{data}', data);
+                    msgTokens = content.length * 2;
+                } else if (msg.type === 'pie_chart_summary') {
+                    content = (systemPromptSettings.pie || DEFAULT_SYSTEM_PROMPTS.pie).replace('{data}', msg.content);
                     msgTokens = content.length * 2;
                 } else {
                     content = msg.content;
@@ -1719,9 +1807,11 @@
             } else if (msg.type === 'image') {
                 contentContainer.innerHTML = `<img src="${msg.content}" class="chat-image" alt="用户发送的图片">`;
             } else if (msg.type === 'ledger_summary') {
-                contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">📖</div><div class="type-name">我的账本</div></div><div class="summary-body"><div class="text">已将最新账本信息同步给AI</div></div></div>`;
+                contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">📖</div><div class="type-name">我的账本</div></div><div class="summary-body"><div class="text">已将筛选账本信息同步给AI</div></div></div>`;
             } else if (msg.type === 'schedule_summary') {
                 contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">🗓️</div><div class="type-name">我的日程</div></div><div class="summary-body"><div class="text">已将最新日程信息同步给AI</div></div></div>`;
+            } else if (msg.type === 'pie_chart_summary') {
+                contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">📊</div><div class="type-name">账本图表</div></div><div class="summary-body"><div class="text">已将图表分析同步给AI</div></div></div>`;
             } else { 
                 const contentSpan = document.createElement('span');
                 contentSpan.className = 'content-text';
@@ -1771,22 +1861,36 @@
             }
         }
         
-        function renderLedger() {
-            const filter = ELS.ledgerFilterCategory.value;
+        function getFilteredTransactions() {
+            const { months, categories, type } = state.ledgerFilters;
             const sort = ELS.ledgerSort.value;
             const displayCurrency = ELS.ledgerCurrency.value;
             
             const allCurrencies = [{code: 'RMB', rate: 1}, ...state.currencies];
             const toRate = allCurrencies.find(c => c.code === displayCurrency)?.rate || 1;
 
-            let filtered = state.transactions.map(t => {
+            let transactionsWithDisplayAmount = state.transactions.map(t => {
                 const fromRate = allCurrencies.find(c => c.code === t.currency)?.rate || 1;
                 const amountInRMB = t.amount * fromRate;
                 const displayAmount = amountInRMB / toRate;
                 return { ...t, displayAmount };
             });
 
-            if (filter !== 'all') { filtered = filtered.filter(t => t.category === filter); } 
+            let filtered = transactionsWithDisplayAmount;
+
+            // Filter by month
+            if (months.length > 0) {
+                filtered = filtered.filter(t => {
+                    const date = new Date(t.timestamp);
+                    const monthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    return months.includes(monthStr);
+                });
+            }
+
+            // Filter by category
+            if (categories.length > 0) {
+                filtered = filtered.filter(t => t.type === type && categories.includes(t.category));
+            }
             
             filtered.sort((a, b) => { 
                 switch(sort) { 
@@ -1795,14 +1899,20 @@
                     case 'amount_asc': return a.displayAmount - b.displayAmount; 
                     default: return b.timestamp - a.timestamp; 
                 } 
-            }); 
+            });
+
+            return { filtered, displayCurrency };
+        }
+
+        function renderLedger() {
+            const { filtered, displayCurrency } = getFilteredTransactions();
             
             // Render List
             ELS.ledgerList.innerHTML = ''; 
             let totalExpense = 0, totalIncome = 0; 
             
             if (filtered.length === 0) { 
-                ELS.ledgerList.innerHTML = '<li class="empty-state">这里空空如也，快去记一笔吧！</li>'; 
+                ELS.ledgerList.innerHTML = '<li class="empty-state">没有符合筛选条件的记录</li>'; 
             } else { 
                 filtered.forEach(t => { 
                     if (t.type === 'expense') totalExpense += t.displayAmount; 
@@ -1811,6 +1921,7 @@
                     const category = CATEGORIES[t.type].find(c => c.id === t.category); 
                     const li = document.createElement('li'); 
                     li.className = 'ledger-item'; 
+                    li.dataset.id = t.id;
                     li.innerHTML = `<div class="icon">${category?.icon || '🤔'}</div><div class="details"><div class="remark">${t.remark || category?.name || '一笔账'}</div><div class="time">${new Date(t.timestamp).toLocaleString()}</div></div><div class="amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.displayAmount.toFixed(2)}</div>`; 
                     ELS.ledgerList.appendChild(li); 
                 }); 
@@ -1821,7 +1932,48 @@
             renderPieCharts(filtered, displayCurrency);
         }
 
+        function generatePieChartSubtitle() {
+            const { months, categories, type } = state.ledgerFilters;
+
+            let timeText;
+            if (months.length === 0) {
+                timeText = '全时间';
+            } else {
+                const sorted = months.map(m => new Date(m + '-01')).sort((a,b) => a - b);
+                const isContinuous = sorted.every((date, i) => {
+                    if (i === 0) return true;
+                    const prev = sorted[i-1];
+                    return prev.getFullYear() === date.getFullYear() && prev.getMonth() + 1 === date.getMonth();
+                });
+
+                if (isContinuous && sorted.length > 1) {
+                    const start = sorted[0];
+                    const end = sorted[sorted.length - 1];
+                    timeText = `${start.getFullYear()}年${start.getMonth()+1}月 - ${end.getFullYear()}年${end.getMonth()+1}月`;
+                } else {
+                    timeText = sorted.map(d => `${d.getFullYear()}年${d.getMonth()+1}月`).join('、');
+                }
+            }
+
+            let categoryText;
+            const allCategoriesForType = CATEGORIES[type].map(c => c.id);
+            if (categories.length === 0 || categories.length === allCategoriesForType.length) {
+                categoryText = '总共';
+            } else {
+                categoryText = categories.map(catId => {
+                    const cat = CATEGORIES[type].find(c => c.id === catId);
+                    return cat ? cat.name : '';
+                }).filter(Boolean).join('、');
+            }
+
+            return `${timeText} ${categoryText}`;
+        }
+
         function renderPieCharts(transactions, currency) {
+            const subtitleText = generatePieChartSubtitle();
+            document.getElementById('expense-pie-subtitle').textContent = subtitleText;
+            document.getElementById('income-pie-subtitle').textContent = subtitleText;
+
             const expenseData = {};
             const incomeData = {};
 
@@ -1935,8 +2087,6 @@
             document.getElementById('ledger-chart-view').dataset.listenerAttached = 'true';
         }
 
-        function populateLedgerFilter() { ELS.ledgerFilterCategory.innerHTML = '<option value="all">所有分类</option>'; const allCats = [...CATEGORIES.expense, ...CATEGORIES.income]; const uniqueCats = [...new Map(allCats.map(item => [item.id, item])).values()]; uniqueCats.forEach(cat => { const option = document.createElement('option'); option.value = cat.id; option.textContent = cat.name; ELS.ledgerFilterCategory.appendChild(option); }); }
-        
         function populateLedgerCurrencyFilter() {
             const select = ELS.ledgerCurrency;
             select.innerHTML = '';
@@ -1949,7 +2099,6 @@
             });
             select.value = 'RMB';
         }
-        populateLedgerFilter();
         
         function showActionMenu(msgId) {
             const menu = document.getElementById('message-action-menu');
@@ -2147,9 +2296,6 @@
                 if (msg) {
                     if (msg.type === 'transaction' && msg.relatedId) transIdsToDelete.push(msg.relatedId);
                     if (msg.type === 'schedule' && msg.relatedId) scheduleIdsToDelete.push(msg.relatedId);
-                    if (msg.type === 'ledger_summary' || msg.type === 'schedule_summary') {
-                        // These are just pointers, no related data to delete
-                    }
                 }
             }
             
@@ -2168,16 +2314,96 @@
         }
 
         // --- Transaction Panel Logic ---
-        function showTransactionPanel() { resetTransactionState(); switchTransactionType('expense'); ELS.transactionPanel.classList.add('visible'); ELS.app.style.overflow = 'hidden'; }
-        function hideTransactionPanel() { ELS.transactionPanel.classList.remove('visible'); ELS.app.style.overflow = 'initial'; }
-        function switchTransactionType(type) { state.currentTransaction.type = type; document.getElementById('type-expense-btn').classList.toggle('active', type === 'expense'); document.getElementById('type-income-btn').classList.toggle('active', type === 'income'); renderCategories(); }
-        function renderCategories() { ELS.categorySelector.innerHTML = ''; const cats = CATEGORIES[state.currentTransaction.type]; cats.forEach(cat => { const item = document.createElement('div'); item.className = 'category-item'; item.dataset.id = cat.id; item.innerHTML = `<div class="icon">${cat.icon}</div><div class="name">${cat.name}</div>`; item.addEventListener('click', () => selectCategory(cat.id)); ELS.categorySelector.appendChild(item); }); if (cats.length > 0) selectCategory(cats[0].id); }
+        function showTransactionPanel(id = null) {
+            state.currentlyEditingTransactionId = id;
+            if (id) {
+                const t = state.transactions.find(t => t.id === id);
+                if (!t) { resetTransactionState(); return; }
+                state.currentTransaction = {
+                    type: t.type,
+                    category: t.category,
+                    amountStr: String(t.amount),
+                    currency: t.currency
+                };
+                document.getElementById('transaction-panel-title').textContent = '编辑记账';
+            } else {
+                resetTransactionState();
+                document.getElementById('transaction-panel-title').textContent = '新建记账';
+            }
+            
+            document.getElementById('currency-selector').textContent = state.currentTransaction.currency;
+            updateAmountDisplay();
+            switchTransactionType(state.currentTransaction.type, state.currentTransaction.category);
+            
+            ELS.transactionPanel.classList.add('visible');
+            ELS.app.style.overflow = 'hidden';
+        }
+
+        function hideTransactionPanel() {
+            ELS.transactionPanel.classList.remove('visible');
+            ELS.app.style.overflow = 'initial';
+            state.currentlyEditingTransactionId = null;
+        }
+
+        function switchTransactionType(type, preselectedCategory = null) {
+            state.currentTransaction.type = type;
+            document.getElementById('type-expense-btn').classList.toggle('active', type === 'expense');
+            document.getElementById('type-income-btn').classList.toggle('active', type === 'income');
+            renderCategories(preselectedCategory);
+        }
+
+        function renderCategories(preselectedCategory = null) {
+            ELS.categorySelector.innerHTML = '';
+            const cats = CATEGORIES[state.currentTransaction.type];
+            cats.forEach(cat => {
+                const item = document.createElement('div');
+                item.className = 'category-item';
+                item.dataset.id = cat.id;
+                item.innerHTML = `<div class="icon">${cat.icon}</div><div class="name">${cat.name}</div>`;
+                item.addEventListener('click', () => selectCategory(cat.id));
+                ELS.categorySelector.appendChild(item);
+            });
+            if (preselectedCategory && cats.some(c => c.id === preselectedCategory)) {
+                selectCategory(preselectedCategory);
+            } else if (cats.length > 0) {
+                selectCategory(cats[0].id);
+            }
+        }
+
         function selectCategory(catId) { state.currentTransaction.category = catId; document.querySelectorAll('.category-item').forEach(item => item.classList.toggle('selected', item.dataset.id === catId)); }
         function handleNumpad(e) { const key = e.target.dataset.key; if (!key) return; let amount = state.currentTransaction.amountStr; if (key === '.') { if (!amount.includes('.')) amount += '.'; } else { if (amount === '0') amount = key; else if (amount.includes('.') && amount.split('.')[1].length >= 2) return; else amount += key; } state.currentTransaction.amountStr = amount; updateAmountDisplay(); }
         function handleNumpadDelete() { let amount = state.currentTransaction.amountStr; amount = amount.slice(0, -1); if (amount === '') amount = '0'; state.currentTransaction.amountStr = amount; updateAmountDisplay(); }
-        function toggleCurrency() { const currencies = ['RMB', ...state.currencies.map(c => c.code)]; const currentIndex = currencies.indexOf(state.currentTransaction.currency); const nextIndex = (currentIndex + 1) % currencies.length; const newCurrency = currencies[nextIndex]; state.currentTransaction.currency = newCurrency; document.getElementById('currency-selector').textContent = newCurrency; localStorage.setItem('lastSelectedCurrency', newCurrency); }
+        function toggleCurrency() { const currencies = ['RMB', ...state.currencies.map(c => c.code)]; const currentIndex = currencies.indexOf(state.currentTransaction.currency); const nextIndex = (currentIndex + 1) % currencies.length; const newCurrency = currencies[nextIndex]; state.currentTransaction.currency = newCurrency; document.getElementById('currency-selector').textContent = newCurrency; if (!state.currentlyEditingTransactionId) localStorage.setItem('lastSelectedCurrency', newCurrency); }
         function updateAmountDisplay() { ELS.amountDisplay.textContent = state.currentTransaction.amountStr; updateSendButtonState(); }
-        function confirmTransaction() { hideTransactionPanel(); sendUserMessage(); }
+        
+        async function confirmTransaction() {
+            const amount = parseFloat(state.currentTransaction.amountStr);
+            if (amount <= 0) { alert('金额必须大于0'); return; }
+
+            if (state.currentlyEditingTransactionId) {
+                const transIndex = state.transactions.findIndex(t => t.id === state.currentlyEditingTransactionId);
+                if (transIndex > -1) {
+                    const originalTransaction = state.transactions[transIndex];
+                    const updatedTransaction = {
+                        ...originalTransaction,
+                        type: state.currentTransaction.type,
+                        category: state.currentTransaction.category,
+                        amount: amount,
+                        currency: state.currentTransaction.currency,
+                        // remark is edited separately via chat, so we don't touch it here
+                    };
+                    await db.transactions.put(updatedTransaction);
+                    state.transactions[transIndex] = updatedTransaction;
+                    alert('记账已更新！');
+                    hideTransactionPanel();
+                    renderLedger();
+                    renderChatMessages(false); // Update chat card if visible
+                }
+            } else {
+                hideTransactionPanel();
+                sendUserMessage();
+            }
+        }
         function resetTransactionState() { const lastCurrency = localStorage.getItem('lastSelectedCurrency') || 'RMB'; state.currentTransaction = { type: 'expense', category: null, amountStr: '0', currency: lastCurrency }; updateAmountDisplay(); document.getElementById('currency-selector').textContent = lastCurrency; }
         
         // --- Schedule & Calendar Logic ---
@@ -2221,7 +2447,17 @@
                 document.getElementById('calendar-modal').classList.remove('visible');
             });
         }
-        function showSchedulePanel(id = null) { resetScheduleState(id); ELS.schedulePanel.classList.add('visible'); ELS.app.style.overflow = 'hidden'; }
+        function showSchedulePanel(id = null) {
+            const titleEl = document.getElementById('schedule-panel-title');
+            if (id) {
+                titleEl.textContent = '编辑日程';
+            } else {
+                titleEl.textContent = '新建日程';
+            }
+            resetScheduleState(id);
+            ELS.schedulePanel.classList.add('visible');
+            ELS.app.style.overflow = 'hidden';
+        }
         function hideSchedulePanel() { ELS.schedulePanel.classList.remove('visible'); ELS.app.style.overflow = 'initial'; state.currentlyEditingScheduleId = null; }
         function setScheduleType(type) {
             document.getElementById('schedule-type-once').classList.toggle('active', type === 'once');
@@ -2302,6 +2538,7 @@
                 scheduleData.id = state.currentlyEditingScheduleId;
                 const existing = state.schedules.find(s => s.id === scheduleData.id);
                 scheduleData.completed = existing.completed;
+                scheduleData.timestamp = existing.timestamp; // Preserve original creation time
                 await db.schedules.put(scheduleData);
                 const index = state.schedules.findIndex(s => s.id === scheduleData.id);
                 state.schedules[index] = scheduleData;
@@ -2370,14 +2607,7 @@
                 // Real-time update in chat
                 const relatedMsg = state.messages.find(m => m.relatedId === schedule.id && m.type === 'schedule');
                 if (relatedMsg) {
-                    const msgElement = document.getElementById(relatedMsg.id);
-                    if (msgElement) {
-                        const statusEl = msgElement.querySelector('.schedule-status');
-                        if (statusEl) {
-                            statusEl.textContent = `状态: ${schedule.completed ? '已完成' : '未完成'}`;
-                            statusEl.className = `schedule-status ${schedule.completed ? 'completed' : 'pending'}`;
-                        }
-                    }
+                    renderChatMessages(false);
                 }
                 
                 renderSchedules();
@@ -2484,10 +2714,58 @@
 
         // --- Forward to Chat ---
         async function forwardLedgerToChat() {
-            if (!confirm('要将完整的账本信息同步到聊天中吗？')) return;
-            const newMsg = { timestamp: Date.now(), role: 'user', content: '', type: 'ledger_summary' };
-            const id = await db.messages.add(newMsg);
-            state.messages.push({ ...newMsg, id });
+            const { filtered, displayCurrency } = getFilteredTransactions();
+            const isChartView = document.getElementById('ledger-view-wrapper').style.transform === 'translateX(-100%)';
+
+            if (isChartView) {
+                // Sync pie chart data
+                const expenseData = {};
+                const incomeData = {};
+                filtered.forEach(t => {
+                    const data = t.type === 'expense' ? expenseData : incomeData;
+                    if (!data[t.category]) data[t.category] = 0;
+                    data[t.category] += t.displayAmount;
+                });
+
+                const totalExpense = Object.values(expenseData).reduce((s, a) => s + a, 0);
+                const totalIncome = Object.values(incomeData).reduce((s, a) => s + a, 0);
+                
+                let summaryText = `${generatePieChartSubtitle()}的账单总结：\n`;
+                let hasData = false;
+                if (totalExpense > 0) {
+                    hasData = true;
+                    summaryText += `总支出为 ${totalExpense.toFixed(2)} ${displayCurrency}。其中：\n`;
+                    summaryText += Object.entries(expenseData).map(([catId, amount]) => {
+                        const cat = CATEGORIES.expense.find(c => c.id === catId);
+                        const percentage = (amount / totalExpense * 100).toFixed(1);
+                        return `- ${cat.name} 支出 ${amount.toFixed(2)} 元，占比 ${percentage}%`;
+                    }).join('\n');
+                }
+                if (totalIncome > 0) {
+                    hasData = true;
+                    if (totalExpense > 0) summaryText += '\n\n';
+                    summaryText += `总收入为 ${totalIncome.toFixed(2)} ${displayCurrency}。其中：\n`;
+                    summaryText += Object.entries(incomeData).map(([catId, amount]) => {
+                        const cat = CATEGORIES.income.find(c => c.id === catId);
+                        const percentage = (amount / totalIncome * 100).toFixed(1);
+                        return `- ${cat.name} 收入 ${amount.toFixed(2)} 元，占比 ${percentage}%`;
+                    }).join('\n');
+                }
+
+                if (!hasData) { alert('当前筛选条件下没有数据可同步'); return; }
+                if (!confirm('要将当前图表分析同步到聊天中吗？')) return;
+                
+                const newMsg = { timestamp: Date.now(), role: 'user', content: summaryText, type: 'pie_chart_summary' };
+                const id = await db.messages.add(newMsg);
+                state.messages.push({ ...newMsg, id });
+            } else {
+                // Sync list data
+                if (filtered.length === 0) { alert('当前筛选条件下没有数据可同步'); return; }
+                if (!confirm('要将当前筛选的账本列表同步到聊天中吗？')) return;
+                const newMsg = { timestamp: Date.now(), role: 'user', content: '', type: 'ledger_summary' };
+                const id = await db.messages.add(newMsg);
+                state.messages.push({ ...newMsg, id });
+            }
             navigateTo('accounting-screen');
             renderChatMessages();
         }
@@ -2498,6 +2776,85 @@
             state.messages.push({ ...newMsg, id });
             navigateTo('accounting-screen');
             renderChatMessages();
+        }
+        
+        // --- Ledger Filter Modals ---
+        function openMonthFilterModal() {
+            const modal = document.getElementById('ledger-month-filter-modal');
+            const list = document.getElementById('month-filter-list');
+            list.innerHTML = '';
+            
+            const availableMonths = [...new Set(state.transactions.map(t => {
+                const d = new Date(t.timestamp);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            }))].sort().reverse();
+            
+            availableMonths.forEach(monthStr => {
+                const item = document.createElement('div');
+                item.className = 'filter-item';
+                const isChecked = state.ledgerFilters.months.includes(monthStr);
+                item.innerHTML = `
+                    <input type="checkbox" id="month-${monthStr}" value="${monthStr}" ${isChecked ? 'checked' : ''}>
+                    <label for="month-${monthStr}">${monthStr.replace('-', '年')}月</label>
+                `;
+                list.appendChild(item);
+            });
+            modal.classList.add('visible');
+        }
+
+        function openCategoryFilterModal() {
+            const modal = document.getElementById('ledger-category-filter-modal');
+            const renderList = (type) => {
+                const list = document.getElementById('category-filter-list');
+                list.innerHTML = '';
+                CATEGORIES[type].forEach(cat => {
+                    const item = document.createElement('div');
+                    item.className = 'filter-item';
+                    const isChecked = state.ledgerFilters.type === type && state.ledgerFilters.categories.includes(cat.id);
+                    item.innerHTML = `
+                        <input type="checkbox" id="cat-${cat.id}" value="${cat.id}" ${isChecked ? 'checked' : ''}>
+                        <label for="cat-${cat.id}">${cat.name}</label>
+                    `;
+                    list.appendChild(item);
+                });
+            };
+
+            const tabs = modal.querySelectorAll('.filter-tab');
+            tabs.forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.type === state.ledgerFilters.type);
+                tab.onclick = () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    renderList(tab.dataset.type);
+                };
+            });
+            
+            renderList(state.ledgerFilters.type);
+            modal.classList.add('visible');
+        }
+
+        function applyLedgerFilters() {
+            // Month filter
+            const monthModal = document.getElementById('ledger-month-filter-modal');
+            const selectedMonths = [];
+            monthModal.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                selectedMonths.push(cb.value);
+            });
+            state.ledgerFilters.months = selectedMonths;
+            
+            // Category filter
+            const categoryModal = document.getElementById('ledger-category-filter-modal');
+            const activeTab = categoryModal.querySelector('.filter-tab.active');
+            if (activeTab) {
+                state.ledgerFilters.type = activeTab.dataset.type;
+                const selectedCategories = [];
+                categoryModal.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+                    selectedCategories.push(cb.value);
+                });
+                state.ledgerFilters.categories = selectedCategories;
+            }
+
+            renderLedger();
         }
 
         // --- General & Utility Functions ---
@@ -2709,6 +3066,30 @@
                 populateLedgerCurrencyFilter();
             }
         }
+        
+        function openSystemPromptsEditor() {
+            const { systemPromptSettings } = state.config;
+            document.getElementById('system-prompt-send-time').checked = systemPromptSettings.sendTime;
+            document.getElementById('system-prompt-send-model').checked = systemPromptSettings.sendModel;
+            document.getElementById('system-prompt-send-role').checked = systemPromptSettings.sendRole;
+            document.getElementById('system-prompt-ledger').value = systemPromptSettings.ledger;
+            document.getElementById('system-prompt-schedule').value = systemPromptSettings.schedule;
+            document.getElementById('system-prompt-pie').value = systemPromptSettings.pie;
+        }
+
+        function saveSystemPrompts() {
+            const newSettings = {
+                sendTime: document.getElementById('system-prompt-send-time').checked,
+                sendModel: document.getElementById('system-prompt-send-model').checked,
+                sendRole: document.getElementById('system-prompt-send-role').checked,
+                ledger: document.getElementById('system-prompt-ledger').value,
+                schedule: document.getElementById('system-prompt-schedule').value,
+                pie: document.getElementById('system-prompt-pie').value,
+            };
+            updateConfig('systemPromptSettings', newSettings);
+            alert('系统提示词设置已保存！');
+            document.getElementById('system-prompts-modal').classList.remove('visible');
+        }
 
         function toggleSidebar() {
             cancelCurrentEdit();
@@ -2732,7 +3113,15 @@
                 const { context } = buildContext(state.config.maxTokens || 4096);
                 const now = new Date();
                 const formattedDateTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                const systemPromptForPreview = `[System Info]\n- Current Model: PREVIEW_MODEL\n- Current Time: ${formattedDateTime}\n- Your Role: PREVIEW_ROLE\n\n---\n\nPREVIEW_SYSTEM_PROMPT`;
+                
+                const { sendTime, sendModel, sendRole } = state.config.systemPromptSettings;
+                let systemInfo = "[System Info]\n";
+                if (sendModel) systemInfo += `- Current Model: PREVIEW_MODEL\n`;
+                if (sendTime) systemInfo += `- Current Time: ${formattedDateTime}\n`;
+                if (sendRole) systemInfo += `- Your Role: PREVIEW_ROLE\n`;
+                systemInfo += `\n---\n\n`;
+
+                const systemPromptForPreview = systemInfo + 'PREVIEW_SYSTEM_PROMPT';
                 
                 const previewPayload = {
                     model: "PREVIEW_MODEL",
