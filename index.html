@@ -3197,7 +3197,7 @@
         
         function renderEventsForDate(dateStr, events) {
             const listContainer = document.getElementById('calendar-event-list');
-            listContainer.innerHTML = `<div class="schedule-section-title">${dateStr.replace('-', '年').replace('-', '日')} 的事件</div>`;
+            listContainer.innerHTML = `<div class="schedule-section-title">${dateStr.replace('-', '年').replace('-', '月').replace('-', '日')} 的事件</div>`;
             if (!events || events.length === 0) {
                 listContainer.innerHTML += '<div class="empty-state">当天没有事件</div>';
                 return;
