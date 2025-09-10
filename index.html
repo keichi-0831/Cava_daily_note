@@ -31,6 +31,7 @@
             --schedule-urgent-not-important: #FFF5E5;
             --schedule-not-urgent-important: #E5F0FF;
             --schedule-not-urgent-not-important: #F0F0F0;
+            --schedule-important-text: #8B4513; /* 红褐色字体 for important tasks */
         }
 
         body[data-theme="blue"] {
@@ -46,6 +47,7 @@
             --border-color: #E0F0FF;
             --shadow-light: rgba(90, 124, 148, 0.1);
             --shadow-medium: rgba(90, 124, 148, 0.15);
+            --schedule-important-text: #0056b3;
         }
 
         body[data-theme="green"] {
@@ -61,6 +63,7 @@
             --border-color: #E5F1E9;
             --shadow-light: rgba(94, 128, 113, 0.1);
             --shadow-medium: rgba(94, 128, 113, 0.15);
+            --schedule-important-text: #285c3f;
         }
 
         body[data-theme="purple"] {
@@ -76,6 +79,7 @@
             --border-color: #F0EBFA;
             --shadow-light: rgba(124, 107, 143, 0.1);
             --shadow-medium: rgba(124, 107, 143, 0.15);
+            --schedule-important-text: #563d7c;
         }
 
         body[data-theme="pink"] {
@@ -91,6 +95,7 @@
             --border-color: #FAEBF0;
             --shadow-light: rgba(154, 106, 116, 0.1);
             --shadow-medium: rgba(154, 106, 116, 0.15);
+            --schedule-important-text: #8c1c44;
         }
 
         body[data-theme="gray"] {
@@ -106,6 +111,7 @@
             --border-color: #EEEEEE;
             --shadow-light: rgba(97, 97, 97, 0.1);
             --shadow-medium: rgba(97, 97, 97, 0.15);
+            --schedule-important-text: #333;
         }
 
         html, body {
@@ -572,6 +578,7 @@
         .numpad-actions button { flex: 1; font-size: 22px; border: none; background: transparent; border-top: 1px solid var(--border-color); cursor: pointer; color: var(--text-primary); }
         .numpad-actions button:active { background-color: var(--bg-soft); }
         .numpad-actions .confirm { background-color: var(--accent-secondary); color: white; font-weight: bold; font-size: 18px; }
+        .numpad-actions .delete-transaction { background-color: var(--error-bg); color: var(--error-text); font-weight: bold; font-size: 18px; }
         #amount-display-container { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary); border-top-left-radius: 20px; border-top-right-radius: 20px; }
         #currency-selector { font-size: 18px; font-weight: bold; color: var(--text-secondary); padding: 5px; cursor: pointer; }
         #amount-display { font-size: 32px; font-weight: bold; text-align: right; flex-grow: 1; }
@@ -614,13 +621,12 @@
             font-weight: 500;
             margin-bottom: 8px;
             padding-left: 5px;
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         .schedule-form-section.red { background-color: #F8D7DA; }
         .schedule-form-section.pink { background-color: #F8C4D8; }
         .schedule-form-section.purple { background-color: #EAE0F7; }
         .schedule-form-section.blue { background-color: #D4E9F7; }
+        .schedule-form-section.green { background-color: #DCEEE2; }
         
         .event-type-toggle {
             display: flex;
@@ -644,6 +650,31 @@
             color: white;
             border-color: var(--accent-secondary);
         }
+        /* Recurrence Section */
+        #recurrence-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        #recurrence-options button {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #recurrence-options button.active {
+            background-color: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+        #recurrence-selector-days { display: flex; flex-wrap: wrap; gap: 8px; }
+        #recurrence-selector-days label { display: flex; align-items: center; gap: 5px; background: var(--bg-secondary); padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 14px; color: var(--text-primary); }
+        #recurrence-selector-days input { accent-color: var(--accent-secondary); }
+
         .importance-stars {
             display: flex;
             gap: 5px;
@@ -682,7 +713,7 @@
             padding: 5px 12px;
             border-radius: 8px;
         }
-        #deadline-display-text {
+        #deadline-display-text, #end-date-display-text {
             flex-grow: 1;
             text-align: left;
             color: var(--text-secondary);
@@ -771,17 +802,97 @@
             border-radius: 50%;
             cursor: pointer;
             transition: background-color 0.2s;
+            position: relative;
         }
         .calendar-day.other-month { color: var(--text-secondary); opacity: 0.5; }
         .calendar-day:not(.other-month):hover { background-color: var(--bg-soft); }
         .calendar-day.today { font-weight: bold; border: 1px solid var(--accent-primary); }
         .calendar-day.selected { background-color: var(--accent-secondary); color: white; }
+        .calendar-day .event-dot { position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; }
+        .calendar-day .event-dot.important { background-color: #E53935; }
+        .calendar-day .event-dot.normal { background-color: #B0BEC5; }
         #calendar-modal .modal-footer { justify-content: space-between; }
         #clear-date-btn { background-color: var(--error-bg); color: var(--error-text); }
 
 
-        /* Schedule Page */
-        #schedule-screen .page-content { flex-grow: 1; overflow-y: auto; padding: 15px; }
+        /* --- NEW: Schedule Page Swipe Styles --- */
+        #schedule-screen {
+            display: flex;
+            flex-direction: column;
+        }
+        #schedule-screen .page-content {
+             padding: 15px;
+             box-sizing: border-box;
+        }
+        .schedule-swipe-container {
+            flex-grow: 1;
+            overflow: hidden;
+            width: 100%;
+        }
+        .schedule-pages-wrapper {
+            display: flex;
+            height: 100%;
+            width: 300%; /* 3 pages */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .schedule-page {
+            width: 33.333%;
+            height: 100%;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .schedule-page > .page-content {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .schedule-page-dots {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+            gap: 8px;
+        }
+        .schedule-page-dots .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            transition: background-color 0.3s;
+        }
+        .schedule-page-dots .dot.active {
+            background-color: var(--accent-secondary);
+        }
+        #schedule-count {
+            flex-shrink: 0;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+        }
+        /* Today's Tasks styling */
+        .today-task-item {
+            display: flex; align-items: center; padding: 12px;
+            background-color: var(--bg-secondary); border-radius: 8px;
+            box-shadow: 0 2px 5px var(--shadow-light);
+            margin-bottom: 8px;
+        }
+        .today-task-item.important {
+            background-color: var(--schedule-urgent-important);
+            color: var(--schedule-important-text);
+        }
+        .today-task-item .title { flex-grow: 1; font-size: 16px; }
+        .today-task-item.completed .title { text-decoration: line-through; color: var(--text-secondary); }
+        .today-task-item .checkbox {
+            width: 20px; height: 20px; border: 2px solid var(--accent-primary); border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; margin-left: 10px; flex-shrink: 0;
+        }
+        .today-task-item.completed .checkbox { background-color: var(--accent-secondary); border-color: var(--accent-secondary); }
+        .today-task-item.completed .checkbox::after { content: '✓'; color: white; font-weight: bold; }
+
+        /* Schedule Main Page (original) */
         .schedule-section { margin-bottom: 30px; }
         .schedule-section-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid var(--accent-primary); }
         .schedule-quadrant { margin-bottom: 20px; }
@@ -792,63 +903,83 @@
         #quadrant-3 .quadrant-header { background-color: var(--schedule-urgent-not-important); }
         #quadrant-4 .quadrant-header { background-color: var(--schedule-not-urgent-not-important); }
         .schedule-items { display: flex; flex-direction: column; gap: 8px; }
-        .schedule-item { display: flex; align-items: center; padding: 12px; background-color: var(--bg-secondary); border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-light); cursor: pointer; transition: transform 0.2s; }
+        .schedule-item { display: flex; align-items: flex-start; padding: 12px; background-color: var(--bg-secondary); border-radius: 8px; box-shadow: 0 2px 5px var(--shadow-light); cursor: pointer; transition: transform 0.2s; }
         .schedule-item:active { transform: scale(0.98); }
-        .schedule-item .title { flex-grow: 1; font-size: 16px; color: var(--text-primary); }
-        .schedule-item .checkbox { width: 20px; height: 20px; border: 2px solid var(--accent-primary); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; margin-left: 10px; }
+        .schedule-item-details { flex-grow: 1; }
+        .schedule-item .title { font-size: 16px; color: var(--text-primary); }
+        .schedule-item .ddl { font-size: 11px; color: rgba(var(--text-primary-rgb), 0.7); margin-top: 4px; }
+        .schedule-item .checkbox { width: 20px; height: 20px; border: 2px solid var(--accent-primary); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; margin-left: 10px; flex-shrink: 0; margin-top: 2px; }
         .schedule-item.completed .checkbox { background-color: var(--accent-secondary); border-color: var(--accent-secondary); }
         .schedule-item.completed .checkbox::after { content: '✓'; color: white; font-weight: bold; }
         .schedule-item.completed .title { text-decoration: line-through; color: var(--text-secondary); }
         .empty-state { text-align: center; padding: 20px; color: var(--text-secondary); }
 
+        /* Schedule Calendar Page */
+        #month-calendar-view { padding: 10px; }
+        #calendar-event-list { padding: 10px; border-top: 1px solid var(--border-color); }
+        #calendar-event-list .event-item { margin-bottom: 8px; }
+        #calendar-event-list .event-title { font-weight: 500; }
+        #calendar-event-list .event-time { font-size: 12px; color: var(--text-secondary); }
+        
         /* Ledger Page */
-        #ledger-screen .page-content { flex-grow: 1; overflow: hidden; padding: 0 0 15px 0; display: flex; flex-direction: column; }
+        #ledger-screen .page-content { flex-grow: 1; overflow: hidden; padding: 0; display: flex; flex-direction: column; }
         .ledger-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding: 15px 15px 15px; border-bottom: 1px solid var(--border-color); }
         .ledger-controls .filter-btn { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; cursor: pointer; }
         .ledger-controls select { border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 14px; flex-grow: 1; }
-        .ledger-footer-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: 15px; }
         
-        /* Vertical Align Fix */
-        #ledger-currency { 
-            border: 1px solid var(--accent-primary); 
-            background: var(--bg-secondary); 
-            color: var(--text-primary); 
-            border-radius: 8px; 
-            padding: 6px 10px; 
-            font-size: 14px; 
-            height: 34px;
-            box-sizing: border-box;
+        /* --- NEW: Ledger Footer Controls --- */
+        .ledger-footer-controls {
             display: flex;
             align-items: center;
+            padding: 10px 15px;
+            gap: 15px;
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
         }
-        #toggle-ledger-view-btn { 
-            border: 1px solid var(--accent-primary); 
-            background: var(--bg-secondary); 
-            color: var(--text-primary); 
-            border-radius: 8px; 
-            padding: 6px 10px; 
-            font-size: 14px; 
-            line-height: 1; 
-            cursor: pointer; 
-            height: 34px;
-            box-sizing: border-box;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        #ledger-currency {
+            border: 1px solid var(--accent-primary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        #toggle-ledger-view-btn {
+            border: none;
+            background: var(--bg-soft);
+            color: var(--text-primary);
+            border-radius: 20px;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        #toggle-ledger-view-btn:active {
+            transform: scale(0.95);
+        }
+        #ledger-count {
+            margin-left: auto;
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
         
-        #ledger-view-wrapper { display: flex; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); flex-grow: 1; }
-        #ledger-list-view, #ledger-chart-view { width: 100%; height: 100%; overflow-y: auto; flex-shrink: 0; box-sizing: border-box; }
+        #ledger-view-wrapper { display: flex; width: 200%; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); flex-grow: 1; }
+        #ledger-list-view, #ledger-chart-view { width: 50%; height: 100%; overflow-y: auto; flex-shrink: 0; box-sizing: border-box; }
         #ledger-list-view { padding: 15px 15px 0; }
         #ledger-chart-view { padding: 15px 15px 0; display: flex; flex-direction: column; gap: 20px; position: relative; }
         
         .pie-chart-area { width: 100%; }
         .pie-chart-title-wrapper { text-align: center; margin: 0 0 10px 0; }
-        .pie-chart-subtitle { font-size: 12px; color: var(--text-secondary); font-weight: normal; margin: 0; }
+        .pie-chart-subtitle { font-size: 12px; color: var(--text-secondary); font-weight: normal; margin: 0; line-height: 1.4; }
         .pie-chart-title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin: 0; }
         .pie-chart-area svg { width: 100%; max-width: 300px; margin: 0 auto; display: block; aspect-ratio: 1; }
-        .pie-chart-area svg path { stroke: var(--bg-main); stroke-width: 2px; cursor: pointer; transition: transform 0.2s ease-out; transform-origin: center center; }
-        .pie-chart-area svg path.active { transform: scale(1.05); }
+        .pie-chart-area svg path, .pie-chart-area svg circle { stroke: var(--bg-main); stroke-width: 2px; cursor: pointer; transition: transform 0.2s ease-out; transform-origin: center center; }
+        .pie-chart-area svg path.active, .pie-chart-area svg circle.active { transform: scale(1.05); }
 
         #pie-chart-tooltip {
             position: absolute;
@@ -875,10 +1006,10 @@
         .ledger-item { background-color: var(--bg-secondary); border-radius: 12px; margin-bottom: 12px; padding: 12px 15px; display: flex; align-items: center; box-shadow: 0 2px 5px var(--shadow-light); cursor: pointer; transition: transform 0.2s; }
         .ledger-item:active { transform: scale(0.98); }
         .ledger-item .icon { font-size: 28px; margin-right: 15px; }
-        .ledger-item .details { flex-grow: 1; }
-        .ledger-item .details .remark { font-weight: 500; margin-bottom: 4px; }
+        .ledger-item .details { flex-grow: 1; min-width: 0; }
+        .ledger-item .details .remark { font-weight: 500; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ledger-item .details .time { font-size: 12px; color: var(--text-secondary); }
-        .ledger-item .amount { font-size: 18px; font-weight: bold; }
+        .ledger-item .amount { font-size: 18px; font-weight: bold; margin-left: 10px; white-space: nowrap; }
         .ledger-item .amount.expense { color: var(--expense-color); }
         .ledger-item .amount.income { color: var(--income-color); }
         #ledger-summary { text-align: center; padding: 20px 0 0 0; color: var(--text-secondary); }
@@ -1107,16 +1238,16 @@
                             <div id="pie-chart-tooltip"></div>
                             <div class="pie-chart-area">
                                 <div class="pie-chart-title-wrapper">
-                                    <p class="pie-chart-subtitle" id="expense-pie-subtitle"></p>
                                     <h3 class="pie-chart-title">支出</h3>
+                                    <p class="pie-chart-subtitle" id="expense-pie-subtitle"></p>
                                 </div>
                                 <svg id="expense-pie-chart"></svg>
                                 <div class="pie-legend" id="expense-pie-legend"></div>
                             </div>
                             <div class="pie-chart-area">
                                 <div class="pie-chart-title-wrapper">
-                                    <p class="pie-chart-subtitle" id="income-pie-subtitle"></p>
                                     <h3 class="pie-chart-title">收入</h3>
+                                    <p class="pie-chart-subtitle" id="income-pie-subtitle"></p>
                                 </div>
                                 <svg id="income-pie-chart"></svg>
                                 <div class="pie-legend" id="income-pie-legend"></div>
@@ -1126,50 +1257,57 @@
                 </div>
                 <div class="ledger-footer-controls">
                     <select id="ledger-currency"></select>
-                    <button id="toggle-ledger-view-btn">📊</button>
+                    <button id="toggle-ledger-view-btn">图表 📊</button>
+                    <div id="ledger-count" class="ledger-count">已记账0笔📈</div>
                 </div>
             </div>
 
-            <!-- Page 3: Schedule -->
+            <!-- Page 3: Schedule (NEW SWIPE LAYOUT) -->
             <div id="schedule-screen" class="page">
                 <div class="header">
                     <div class="left-action"></div>
-                    <div class="center-title"><span>我的日程</span></div>
+                    <div class="center-title"><span id="schedule-page-title">今日待办</span></div>
                     <div class="right-action"><span class="action-btn" id="forward-schedule-btn">➣</span></div>
                 </div>
-                <div class="page-content">
-                    <div class="schedule-section">
-                        <div class="schedule-section-title">待完成</div>
-                        <div class="schedule-quadrant" id="quadrant-1">
-                            <div class="quadrant-header">
-                                <div class="quadrant-title">重要且紧急</div>
+                <div class="schedule-swipe-container">
+                    <div class="schedule-pages-wrapper">
+                        <!-- Page 1: 今日待办 -->
+                        <div class="schedule-page" id="schedule-today-page">
+                            <div class="page-content" id="today-tasks-content">
+                                <!-- Today's tasks will be rendered here by JS -->
                             </div>
-                            <div class="schedule-items" id="quadrant-1-items"></div>
                         </div>
-                        <div class="schedule-quadrant" id="quadrant-2">
-                            <div class="quadrant-header">
-                                <div class="quadrant-title">重要不紧急</div>
+                        <!-- Page 2: 原日程四象限页面 -->
+                        <div class="schedule-page" id="schedule-main-page">
+                            <div class="page-content">
+                                <div class="schedule-section">
+                                    <div class="schedule-section-title">待完成</div>
+                                    <div class="schedule-quadrant" id="quadrant-1"><div class="quadrant-header"><div class="quadrant-title">重要且紧急</div></div><div class="schedule-items" id="quadrant-1-items"></div></div>
+                                    <div class="schedule-quadrant" id="quadrant-2"><div class="quadrant-header"><div class="quadrant-title">重要不紧急</div></div><div class="schedule-items" id="quadrant-2-items"></div></div>
+                                    <div class="schedule-quadrant" id="quadrant-3"><div class="quadrant-header"><div class="quadrant-title">紧急不重要</div></div><div class="schedule-items" id="quadrant-3-items"></div></div>
+                                    <div class="schedule-quadrant" id="quadrant-4"><div class="quadrant-header"><div class="quadrant-title">不紧急不重要</div></div><div class="schedule-items" id="quadrant-4-items"></div></div>
+                                </div>
+                                <div class="schedule-section">
+                                    <div class="schedule-section-title">已完成</div>
+                                    <div class="schedule-items" id="completed-items"></div>
+                                </div>
                             </div>
-                            <div class="schedule-items" id="quadrant-2-items"></div>
                         </div>
-                        <div class="schedule-quadrant" id="quadrant-3">
-                            <div class="quadrant-header">
-                                <div class="quadrant-title">紧急不重要</div>
+                        <!-- Page 3: 月历 -->
+                        <div class="schedule-page" id="schedule-calendar-page">
+                            <div class="page-content">
+                                <div id="month-calendar-view"></div>
+                                <div id="calendar-event-list"></div>
                             </div>
-                            <div class="schedule-items" id="quadrant-3-items"></div>
                         </div>
-                        <div class="schedule-quadrant" id="quadrant-4">
-                            <div class="quadrant-header">
-                                <div class="quadrant-title">不紧急不重要</div>
-                            </div>
-                            <div class="schedule-items" id="quadrant-4-items"></div>
-                        </div>
-                    </div>
-                    <div class="schedule-section">
-                        <div class="schedule-section-title">已完成</div>
-                        <div class="schedule-items" id="completed-items"></div>
                     </div>
                 </div>
+                <div class="schedule-page-dots">
+                    <span class="dot active" data-index="0"></span>
+                    <span class="dot" data-index="1"></span>
+                    <span class="dot" data-index="2"></span>
+                </div>
+                <div id="schedule-count" class="schedule-count">已完成0项事件🌟</div>
             </div>
 
             <!-- Page 4: More/Settings -->
@@ -1241,7 +1379,7 @@
             </div>
             <div id="numpad-container">
                 <div class="numpad"><button data-key="1">1</button><button data-key="2">2</button><button data-key="3">3</button><button data-key="4">4</button><button data-key="5">5</button><button data-key="6">6</button><button data-key="7">7</button><button data-key="8">8</button><button data-key="9">9</button><button class="zero" data-key="0">0</button><button data-key=".">.</button></div>
-                <div class="numpad-actions"><button id="numpad-delete">⌫</button><button id="numpad-confirm" class="confirm">完成</button></div>
+                <div class="numpad-actions" id="numpad-actions"><button id="numpad-delete">⌫</button><button id="numpad-confirm" class="confirm">完成</button></div>
             </div>
         </div>
 
@@ -1259,6 +1397,15 @@
                         <button id="schedule-type-long">长期事件</button>
                     </div>
                 </div>
+                 <div class="schedule-form-section green" id="recurrence-section" style="display: none;">
+                    <label>重复周期</label>
+                    <div id="recurrence-options">
+                        <button data-type="daily">每天</button>
+                        <button data-type="weekly">每周</button>
+                        <button data-type="monthly">每月</button>
+                    </div>
+                    <div id="recurrence-selector-days" style="margin-top: 10px;"></div>
+                </div>
                  <div class="schedule-form-section blue">
                     <label>标题</label>
                     <input type="text" id="schedule-title-input" placeholder="输入事件标题">
@@ -1275,7 +1422,7 @@
                     </div>
                 </div>
                 <div class="schedule-form-section purple">
-                    <label>截止日期</label>
+                    <label id="deadline-label">截止日期</label>
                     <div class="deadline-inputs">
                         <span id="deadline-display-text">选择日期</span>
                         <div class="time-input-part">
@@ -1283,6 +1430,12 @@
                             <span class="time-separator">:</span>
                             <input type="number" id="deadline-minute-input" class="time-input" placeholder="分">
                         </div>
+                    </div>
+                </div>
+                <div class="schedule-form-section purple" id="end-date-section" style="display: none;">
+                    <label>结束日期</label>
+                    <div class="deadline-inputs">
+                        <span id="end-date-display-text">永不结束</span>
                     </div>
                 </div>
                 <div class="schedule-form-section blue">
@@ -1323,15 +1476,15 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const db = new Dexie('WarmBookkeepingDB_v8');
-        db.version(8).stores({
+        const db = new Dexie('WarmBookkeepingDB_v9'); // Upped version for schema change
+        db.version(9).stores({
             appConfig: 'id',
             transactions: '++id, timestamp, type, category, amount, currency, remark',
             messages: '++id, timestamp, role, content, type, senderId, relatedId',
             apiProxies: '++id, name, url, apiKey, models',
             aiCharacters: '++id, name, prompt, avatar, proxyId, model, backupProxyId, backupModel',
             currencies: 'code, name, rate',
-            schedules: '++id, timestamp, title, description, importance, deadline, eventType, completed'
+            schedules: '++id, timestamp, title, description, importance, deadline, eventType, completed, recurrence, endDate, completedDates'
         });
 
         const DEFAULT_SYSTEM_PROMPTS = {
@@ -1347,13 +1500,14 @@
             config: {}, proxies: [], characters: [], messages: [], transactions: [], currencies: [], schedules: [],
             currentTransaction: { type: 'expense', category: null, amountStr: '0', currency: 'RMB' },
             currentSchedule: {},
-            calendarState: { year: new Date().getFullYear(), month: new Date().getMonth(), selectedDate: null },
+            calendarState: { year: new Date().getFullYear(), month: new Date().getMonth(), selectedDate: null, mode: 'deadline' },
             ledgerFilters: { months: [], type: 'expense', categories: [] },
             isSelectionMode: false,
             selectedMessages: new Set(),
             currentlyEditingMsgId: null,
             currentlyEditingTransactionId: null,
             currentlyEditingScheduleId: null,
+            schedulePageIndex: 0,
         };
         
         const ELS = {
@@ -1367,6 +1521,7 @@
             ledgerList: document.getElementById('ledger-list'), ledgerSummary: document.getElementById('ledger-summary'),
             ledgerSort: document.getElementById('ledger-sort'),
             ledgerCurrency: document.getElementById('ledger-currency'),
+            ledgerCount: document.getElementById('ledger-count'),
             themeSelectors: document.querySelectorAll('input[name="theme"]'),
             sidebar: document.getElementById('chat-sidebar'),
             sidebarOverlay: document.getElementById('sidebar-overlay'),
@@ -1507,6 +1662,10 @@
             setupEditorModal('ledger-category-filter-modal', () => { applyLedgerFilters(); document.getElementById('ledger-category-filter-modal').classList.remove('visible'); });
             setupEditorModal('cropper-modal', null); 
             setupModal(null, 'ai-character-selector-modal', null, null);
+            document.querySelector('#ai-character-selector-modal .cancel-btn').addEventListener('click', () => {
+                document.getElementById('ai-character-selector-modal').classList.remove('visible');
+            });
+
             setupModal(null, 'message-action-menu', null);
             
             const scheduleDetailModal = document.getElementById('schedule-detail-modal');
@@ -1528,41 +1687,37 @@
             
             document.addEventListener('click', (e) => { if (!e.target.closest('#plus-btn') && !e.target.closest('#plus-menu')) { hidePlusMenu(); } });
             
-            // Ledger view toggle and swipe
-            const ledgerContent = document.getElementById('ledger-page-content');
-            const ledgerWrapper = document.getElementById('ledger-view-wrapper');
-            let touchStartX = 0;
-            let isChartView = false;
+            // --- NEW: Ledger view swipe logic ---
+            let ledgerTouchStartX = 0;
+            let ledgerViewIndex = 0; // 0 for list, 1 for chart
 
-            ledgerContent.addEventListener('touchstart', e => {
-                touchStartX = e.changedTouches[0].screenX;
+            function updateLedgerView() {
+                const wrapper = document.getElementById('ledger-view-wrapper');
+                wrapper.style.transform = `translateX(-${ledgerViewIndex * 50}%)`;
+                document.getElementById('toggle-ledger-view-btn').textContent = ledgerViewIndex === 0 ? '图表 📊' : '列表 📄';
+            }
+            
+            document.getElementById('ledger-page-content').addEventListener('touchstart', e => {
+                ledgerTouchStartX = e.changedTouches[0].screenX;
             }, { passive: true });
 
-            ledgerContent.addEventListener('touchend', e => {
+            document.getElementById('ledger-page-content').addEventListener('touchend', e => {
                 const touchEndX = e.changedTouches[0].screenX;
-                const swipeDist = touchEndX - touchStartX;
+                const swipeDist = touchEndX - ledgerTouchStartX;
                 if (Math.abs(swipeDist) < 50) return;
 
-                if (swipeDist < 0 && !isChartView) { // Swipe left
-                    ledgerWrapper.style.transform = 'translateX(-100%)';
-                    isChartView = true;
-                    document.getElementById('toggle-ledger-view-btn').textContent = '📄';
-                } else if (swipeDist > 0 && isChartView) { // Swipe right
-                    ledgerWrapper.style.transform = 'translateX(0%)';
-                    isChartView = false;
-                    document.getElementById('toggle-ledger-view-btn').textContent = '📊';
+                if (swipeDist < 0 && ledgerViewIndex === 0) { // Swipe left
+                    ledgerViewIndex = 1;
+                    updateLedgerView();
+                } else if (swipeDist > 0 && ledgerViewIndex === 1) { // Swipe right
+                    ledgerViewIndex = 0;
+                    updateLedgerView();
                 }
             });
 
             document.getElementById('toggle-ledger-view-btn').addEventListener('click', () => {
-                isChartView = !isChartView;
-                if (isChartView) {
-                    ledgerWrapper.style.transform = 'translateX(-100%)';
-                    document.getElementById('toggle-ledger-view-btn').textContent = '📄';
-                } else {
-                    ledgerWrapper.style.transform = 'translateX(0%)';
-                    document.getElementById('toggle-ledger-view-btn').textContent = '📊';
-                }
+                ledgerViewIndex = ledgerViewIndex === 0 ? 1 : 0;
+                updateLedgerView();
             });
             
             // Ledger list item click for editing
@@ -1571,6 +1726,27 @@
                 if (item && item.dataset.id) {
                     showTransactionPanel(parseInt(item.dataset.id));
                 }
+            });
+
+            // NEW: Schedule page swipe listeners
+            const scheduleSwipeContainer = document.querySelector('.schedule-swipe-container');
+            const schedulePagesWrapper = document.querySelector('.schedule-pages-wrapper');
+            let scheduleTouchStartX = 0;
+            scheduleSwipeContainer.addEventListener('touchstart', e => {
+                scheduleTouchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+
+            scheduleSwipeContainer.addEventListener('touchend', e => {
+                const touchEndX = e.changedTouches[0].screenX;
+                const swipeDist = touchEndX - scheduleTouchStartX;
+                if (Math.abs(swipeDist) < 50) return;
+
+                if (swipeDist < 0 && state.schedulePageIndex < 2) { // Swipe left
+                    state.schedulePageIndex++;
+                } else if (swipeDist > 0 && state.schedulePageIndex > 0) { // Swipe right
+                    state.schedulePageIndex--;
+                }
+                updateSchedulePage();
             });
         }
         
@@ -1852,8 +2028,22 @@
                 const s = state.schedules.find(s => s.id === msg.relatedId);
                 if (!s) return wrapper;
                 const deadlineStr = s.deadline ? formatDeadline(s.deadline) : '无';
-                const statusClass = s.completed ? 'completed' : 'pending';
-                const statusText = s.completed ? '已完成' : '未完成';
+                
+                let statusText = '未完成';
+                let statusClass = 'pending';
+
+                if (s.eventType === 'once' && s.completed) {
+                    statusText = '已完成';
+                    statusClass = 'completed';
+                } else if (s.eventType === 'long') {
+                    const today = new Date();
+                    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    if (s.completedDates && s.completedDates.includes(todayStr)) {
+                        statusText = '已完成 (今日)';
+                        statusClass = 'completed';
+                    }
+                }
+                
                 contentContainer.innerHTML = `<div class="schedule-card"><div class="schedule-header"><div class="icon">🏷️</div><div class="type-name">${s.eventType==='long'?'长期事件':'单次事件'}</div></div><div class="schedule-body"><div class="schedule-title">${s.title}</div><div class="schedule-importance">重要程度: ${s.importance.toFixed(1)}</div><div class="schedule-deadline">截止: ${deadlineStr}</div><div class="schedule-status ${statusClass}">状态: ${statusText}</div>${s.description?`<div class="schedule-description"><span class="original-text">${s.description}</span></div>`:''}</div></div>`;
             } else if (msg.type === 'image') {
                 contentContainer.innerHTML = `<img src="${msg.content}" class="chat-image" alt="用户发送的图片">`;
@@ -1973,7 +2163,7 @@
                     const li = document.createElement('li'); 
                     li.className = 'ledger-item'; 
                     li.dataset.id = t.id;
-                    li.innerHTML = `<div class="icon">${category?.icon || '🤔'}</div><div class="details"><div class="remark">${t.remark || category?.name || '一笔账'}</div><div class="time">${new Date(t.timestamp).toLocaleString()}</div></div><div class="amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.displayAmount.toFixed(2)}</div>`; 
+                    li.innerHTML = `<div class="icon">${category?.icon || '🤔'}</div><div class="details"><div class="remark">${t.remark || category?.name || '一笔账'}</div><div class="time">${new Date(t.timestamp).toLocaleString()}</div></div><div class="amount ${t.type}">${t.type === 'expense' ? '-' : '+'}${t.displayAmount.toFixed(2)} ${displayCurrency}</div>`; 
                     ELS.ledgerList.appendChild(li); 
                 }); 
             } 
@@ -1981,6 +2171,9 @@
 
             // Render Charts
             renderPieCharts(filtered, displayCurrency);
+            
+            // Update total count
+            ELS.ledgerCount.textContent = `已记账${state.transactions.length}笔📈`;
         }
 
         function generatePieChartSubtitle() {
@@ -2022,8 +2215,6 @@
 
         function renderPieCharts(transactions, currency) {
             const subtitleText = generatePieChartSubtitle();
-            document.getElementById('expense-pie-subtitle').textContent = subtitleText;
-            document.getElementById('income-pie-subtitle').textContent = subtitleText;
 
             const expenseData = {};
             const incomeData = {};
@@ -2035,9 +2226,15 @@
                 }
                 data[t.category] += t.displayAmount;
             });
+            
+            const totalExpense = Object.values(expenseData).reduce((s, a) => s + a, 0);
+            const totalIncome = Object.values(incomeData).reduce((s, a) => s + a, 0);
 
-            drawPieChart('expense-pie-chart', 'expense-pie-legend', expenseData, CATEGORIES.expense, currency);
-            drawPieChart('income-pie-chart', 'income-pie-legend', incomeData, CATEGORIES.income, currency);
+            document.getElementById('expense-pie-subtitle').innerHTML = `${subtitleText}<br><span style="font-weight: bold; color: var(--text-primary);">${totalExpense.toFixed(2)} ${currency}</span>`;
+            document.getElementById('income-pie-subtitle').innerHTML = `${subtitleText}<br><span style="font-weight: bold; color: var(--text-primary);">${totalIncome.toFixed(2)} ${currency}</span>`;
+            
+            drawPieChart('expense-pie-chart', 'expense-pie-legend', expenseData, CATEGORIES.expense, currency, totalExpense);
+            drawPieChart('income-pie-chart', 'income-pie-legend', incomeData, CATEGORIES.income, currency, totalIncome);
         }
 
         function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
@@ -2056,14 +2253,13 @@
             return d;
         }
 
-        function drawPieChart(svgId, legendId, data, categoryDefinitions, currency) {
+        function drawPieChart(svgId, legendId, data, categoryDefinitions, currency, totalAmount) {
             const svg = document.getElementById(svgId);
             const legend = document.getElementById(legendId);
             svg.innerHTML = '';
             legend.innerHTML = '';
             svg.setAttribute('viewBox', '0 0 250 250');
             const tooltip = document.getElementById('pie-chart-tooltip');
-            const totalAmount = Object.values(data).reduce((sum, amount) => sum + amount, 0);
 
             if (totalAmount === 0) {
                 const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -2091,21 +2287,32 @@
                 const categoryName = categoryInfo ? categoryInfo.name : '未知';
                 const color = colors[colorIndex++ % colors.length];
 
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute("d", describeArc(cx, cy, radius, startAngle, endAngle));
-                path.setAttribute("fill", color);
-                path.dataset.name = categoryName;
-                path.dataset.amount = amount.toFixed(2);
-                path.dataset.percent = percentage.toFixed(1);
+                let chartElement;
+                
+                // BUGFIX: Handle full circle case for single category
+                if (angle > 359.9) { // Use tolerance for float issues
+                    chartElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    chartElement.setAttribute("cx", cx);
+                    chartElement.setAttribute("cy", cy);
+                    chartElement.setAttribute("r", radius);
+                } else {
+                    chartElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    chartElement.setAttribute("d", describeArc(cx, cy, radius, startAngle, endAngle));
+                }
+                
+                chartElement.setAttribute("fill", color);
+                chartElement.dataset.name = categoryName;
+                chartElement.dataset.amount = amount.toFixed(2);
+                chartElement.dataset.percent = percentage.toFixed(1);
 
-                path.addEventListener('click', (e) => {
+                chartElement.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const currentActive = svg.querySelector('path.active');
-                    if (currentActive && currentActive !== path) currentActive.classList.remove('active');
-                    path.classList.toggle('active');
+                    const currentActive = svg.querySelector('.active');
+                    if (currentActive && currentActive !== chartElement) currentActive.classList.remove('active');
+                    chartElement.classList.toggle('active');
 
-                    if (path.classList.contains('active')) {
-                        tooltip.innerHTML = `<strong>${path.dataset.name}</strong><br>${path.dataset.percent}%<br>${path.dataset.amount} ${currency}`;
+                    if (chartElement.classList.contains('active')) {
+                        tooltip.innerHTML = `<strong>${chartElement.dataset.name}</strong><br>${chartElement.dataset.percent}%<br>${chartElement.dataset.amount} ${currency}`;
                         const chartViewRect = document.getElementById('ledger-chart-view').getBoundingClientRect();
                         const x = e.clientX - chartViewRect.left;
                         const y = e.clientY - chartViewRect.top + document.getElementById('ledger-chart-view').scrollTop;
@@ -2116,7 +2323,7 @@
                         tooltip.style.display = 'none';
                     }
                 });
-                svg.appendChild(path);
+                svg.appendChild(chartElement);
                 
                 const legendItem = document.createElement('div');
                 legendItem.className = 'legend-item';
@@ -2129,9 +2336,9 @@
 
         if (!document.getElementById('ledger-chart-view').dataset.listenerAttached) {
             document.getElementById('ledger-chart-view').addEventListener('click', (e) => {
-                if (e.target.tagName !== 'path') {
+                if (e.target.tagName !== 'path' && e.target.tagName !== 'circle') {
                     document.getElementById('pie-chart-tooltip').style.display = 'none';
-                    const currentActive = document.querySelector('#ledger-chart-view path.active');
+                    const currentActive = document.querySelector('#ledger-chart-view .active');
                     if (currentActive) currentActive.classList.remove('active');
                 }
             });
@@ -2368,6 +2575,11 @@
         function showTransactionPanel(id = null) {
             state.currentlyEditingTransactionId = id;
             const remarkInput = document.getElementById('transaction-remark-input');
+            const actionsContainer = document.getElementById('numpad-actions');
+            
+            // Remove existing delete button if any
+            const existingDeleteBtn = document.getElementById('delete-transaction-btn');
+            if (existingDeleteBtn) existingDeleteBtn.remove();
             
             if (id) {
                 const t = state.transactions.find(t => t.id === id);
@@ -2379,11 +2591,33 @@
                     currency: t.currency
                 };
                 document.getElementById('transaction-panel-title').textContent = '编辑记账';
-                remarkInput.value = t.remark || ''; // 加载现有备注
+                remarkInput.value = t.remark || '';
+                
+                // Add delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.id = 'delete-transaction-btn';
+                deleteBtn.className = 'delete-transaction';
+                deleteBtn.textContent = '删除';
+                deleteBtn.onclick = async () => {
+                    if (confirm('确定要删除这条记账及其聊天记录吗？')) {
+                        const msg = state.messages.find(m => m.relatedId === id && m.type === 'transaction');
+                        await db.transactions.delete(id);
+                        state.transactions = state.transactions.filter(t => t.id !== id);
+                        if(msg) {
+                            await db.messages.delete(msg.id);
+                            state.messages = state.messages.filter(m => m.id !== msg.id);
+                        }
+                        hideTransactionPanel();
+                        renderLedger();
+                        renderChatMessages(false);
+                    }
+                };
+                actionsContainer.appendChild(deleteBtn);
+
             } else {
                 resetTransactionState();
                 document.getElementById('transaction-panel-title').textContent = '新建记账';
-                remarkInput.value = ''; // 清空备注
+                remarkInput.value = '';
             }
             
             document.getElementById('currency-selector').textContent = state.currentTransaction.currency;
@@ -2435,7 +2669,7 @@
             const amount = parseFloat(state.currentTransaction.amountStr);
             if (amount <= 0) { alert('金额必须大于0'); return; }
             
-            const remark = document.getElementById('transaction-remark-input').value.trim(); // 获取备注
+            const remark = document.getElementById('transaction-remark-input').value.trim();
 
             if (state.currentlyEditingTransactionId) {
                 const transIndex = state.transactions.findIndex(t => t.id === state.currentlyEditingTransactionId);
@@ -2447,24 +2681,23 @@
                         category: state.currentTransaction.category,
                         amount: amount,
                         currency: state.currentTransaction.currency,
-                        remark: remark // 更新备注
+                        remark: remark
                     };
                     await db.transactions.put(updatedTransaction);
                     state.transactions[transIndex] = updatedTransaction;
-                    alert('记账已更新！');
+                    
                     hideTransactionPanel();
                     renderLedger();
                     renderChatMessages(false);
                 }
             } else {
-                // 创建新记账时直接保存到数据库
                 const newTransaction = { 
                     timestamp: Date.now(), 
                     type: state.currentTransaction.type, 
                     category: state.currentTransaction.category, 
                     amount: amount, 
                     currency: state.currentTransaction.currency, 
-                    remark: remark // 包含备注
+                    remark: remark
                 };
                 const transId = await db.transactions.add(newTransaction);
                 const msgId = await db.messages.add({ 
@@ -2488,17 +2721,27 @@
             state.currentTransaction = { type: 'expense', category: null, amountStr: '0', currency: lastCurrency }; 
             updateAmountDisplay(); 
             document.getElementById('currency-selector').textContent = lastCurrency;
-            document.getElementById('transaction-remark-input').value = ''; // 清空备注
+            document.getElementById('transaction-remark-input').value = '';
         }
         
-        // --- Schedule & Calendar Logic ---
+        // --- Schedule & Calendar Logic (NEW & UPDATED) ---
         function setupSchedulePanelListeners() {
             document.getElementById('schedule-type-once').addEventListener('click', () => setScheduleType('once'));
             document.getElementById('schedule-type-long').addEventListener('click', () => setScheduleType('long'));
             setupImportanceStars();
             document.getElementById('confirm-schedule-btn').addEventListener('click', confirmSchedule);
             document.getElementById('cancel-schedule-btn').addEventListener('click', hideSchedulePanel);
-            document.getElementById('deadline-display-text').addEventListener('click', showCalendarModal);
+            document.getElementById('deadline-display-text').addEventListener('click', () => { state.calendarState.mode = 'deadline'; showCalendarModal(); });
+            document.getElementById('end-date-display-text').addEventListener('click', () => { state.calendarState.mode = 'endDate'; showCalendarModal(); });
+            
+            document.getElementById('recurrence-options').addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn) {
+                    document.querySelectorAll('#recurrence-options button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderRecurrenceDaySelector(btn.dataset.type);
+                }
+            });
         }
         function setupCalendarModalListeners() {
             document.getElementById('close-calendar-btn').addEventListener('click', () => document.getElementById('calendar-modal').classList.remove('visible'));
@@ -2521,33 +2764,61 @@
             document.getElementById('calendar-grid').addEventListener('click', (e) => {
                 const dayEl = e.target.closest('.calendar-day');
                 if (dayEl && !dayEl.classList.contains('other-month')) {
-                    state.calendarState.selectedDate = new Date(state.calendarState.year, state.calendarState.month, parseInt(dayEl.textContent));
-                    updateDeadlineDisplay();
+                    const selectedDate = new Date(state.calendarState.year, state.calendarState.month, parseInt(dayEl.textContent));
+                    if (state.calendarState.mode === 'deadline') {
+                        state.currentSchedule.deadlineDate = selectedDate;
+                        updateDeadlineDisplay();
+                    } else if (state.calendarState.mode === 'endDate') {
+                        state.currentSchedule.endDate = selectedDate;
+                        updateEndDateDisplay();
+                    }
                     document.getElementById('calendar-modal').classList.remove('visible');
                 }
             });
             document.getElementById('clear-date-btn').addEventListener('click', () => {
-                state.calendarState.selectedDate = null;
-                updateDeadlineDisplay();
+                 if (state.calendarState.mode === 'deadline') {
+                    state.currentSchedule.deadlineDate = null;
+                    updateDeadlineDisplay();
+                } else if (state.calendarState.mode === 'endDate') {
+                    state.currentSchedule.endDate = null;
+                    updateEndDateDisplay();
+                }
                 document.getElementById('calendar-modal').classList.remove('visible');
             });
         }
         function showSchedulePanel(id = null) {
             const titleEl = document.getElementById('schedule-panel-title');
-            if (id) {
-                titleEl.textContent = '编辑日程';
-            } else {
-                titleEl.textContent = '新建日程';
-            }
+            titleEl.textContent = id ? '编辑日程' : '新建日程';
             resetScheduleState(id);
             ELS.schedulePanel.classList.add('visible');
             ELS.app.style.overflow = 'hidden';
         }
         function hideSchedulePanel() { ELS.schedulePanel.classList.remove('visible'); ELS.app.style.overflow = 'initial'; state.currentlyEditingScheduleId = null; }
+        
         function setScheduleType(type) {
-            document.getElementById('schedule-type-once').classList.toggle('active', type === 'once');
-            document.getElementById('schedule-type-long').classList.toggle('active', type === 'long');
+            const isLong = type === 'long';
+            document.getElementById('schedule-type-once').classList.toggle('active', !isLong);
+            document.getElementById('schedule-type-long').classList.toggle('active', isLong);
+            document.getElementById('recurrence-section').style.display = isLong ? 'block' : 'none';
+            document.getElementById('end-date-section').style.display = isLong ? 'block' : 'none';
+            document.getElementById('deadline-label').textContent = isLong ? '开始日期' : '截止日期';
         }
+
+        function renderRecurrenceDaySelector(type) {
+            const container = document.getElementById('recurrence-selector-days');
+            container.innerHTML = '';
+            let options = [];
+            if (type === 'weekly') {
+                options = ['日', '一', '二', '三', '四', '五', '六'].map((day, i) => ({ value: i, text: `周${day}` }));
+            } else if (type === 'monthly') {
+                for (let i = 1; i <= 31; i++) options.push({ value: i, text: `${i}日` });
+                options.push({ value: 'last', text: '最后一天'});
+            }
+            options.forEach(opt => {
+                container.innerHTML += `<label><input type="checkbox" name="recurrence-day" value="${opt.value}"> ${opt.text}</label>`;
+            });
+        }
+
         function setupImportanceStars() {
             document.getElementById('importance-stars').addEventListener('click', (e) => {
                 const starEl = e.target.closest('.star');
@@ -2556,9 +2827,9 @@
                 const starIndex = Array.from(starEl.parentElement.children).indexOf(starEl);
                 const baseScore = starIndex * 2;
                 if (score === baseScore + 2) {
-                    updateStarsDisplay(baseScore + 1); // From full to half
+                    updateStarsDisplay(baseScore + 1);
                 } else {
-                    updateStarsDisplay(baseScore + 2); // From half or empty to full
+                    updateStarsDisplay(baseScore + 2);
                 }
             });
         }
@@ -2577,17 +2848,33 @@
         }
         function resetScheduleState(id = null) {
             state.currentlyEditingScheduleId = id;
-            let schedule = { eventType: 'once', title: '', description: '', importance: 0, deadline: null, completed: false };
+            let schedule = { eventType: 'once', title: '', description: '', importance: 0, deadline: null, completed: false, recurrence: null, endDate: null, completedDates: [] };
             if (id) {
                 const existing = state.schedules.find(s => s.id === id);
-                if (existing) schedule = JSON.parse(JSON.stringify(existing)); // Deep copy
+                if (existing) schedule = JSON.parse(JSON.stringify(existing));
             }
-            state.calendarState.selectedDate = schedule.deadline ? new Date(schedule.deadline.year, schedule.deadline.month-1, schedule.deadline.day) : null;
+            
+            state.currentSchedule.deadlineDate = schedule.deadline ? new Date(schedule.deadline.year, schedule.deadline.month-1, schedule.deadline.day) : null;
+            state.currentSchedule.endDate = schedule.endDate ? new Date(schedule.endDate) : null;
             
             setScheduleType(schedule.eventType);
+            if (schedule.recurrence) {
+                const btn = document.querySelector(`#recurrence-options button[data-type="${schedule.recurrence.type}"]`);
+                if (btn) btn.click();
+                setTimeout(() => {
+                    if(schedule.recurrence.days) {
+                        schedule.recurrence.days.forEach(day => {
+                            const cb = document.querySelector(`input[name="recurrence-day"][value="${day}"]`);
+                            if (cb) cb.checked = true;
+                        });
+                    }
+                }, 0);
+            }
+
             document.getElementById('schedule-title-input').value = schedule.title;
             updateStarsDisplay(schedule.importance);
             updateDeadlineDisplay();
+            updateEndDateDisplay();
             document.getElementById('deadline-hour-input').value = schedule.deadline?.hour ?? '';
             document.getElementById('deadline-minute-input').value = schedule.deadline?.minute ?? '';
             document.getElementById('schedule-description-input').value = schedule.description;
@@ -2601,33 +2888,54 @@
             const hour = (hourVal !== '' && !isNaN(parseInt(hourVal))) ? parseInt(hourVal) : null;
             const minute = (minuteVal !== '' && !isNaN(parseInt(minuteVal))) ? parseInt(minuteVal) : null;
 
-            const deadline = state.calendarState.selectedDate ? {
-                year: state.calendarState.selectedDate.getFullYear(),
-                month: state.calendarState.selectedDate.getMonth() + 1,
-                day: state.calendarState.selectedDate.getDate(),
+            const deadline = state.currentSchedule.deadlineDate ? {
+                year: state.currentSchedule.deadlineDate.getFullYear(),
+                month: state.currentSchedule.deadlineDate.getMonth() + 1,
+                day: state.currentSchedule.deadlineDate.getDate(),
                 hour: (hour >= 0 && hour <= 23) ? hour : null,
                 minute: (minute >= 0 && minute <= 59) ? minute : null,
             } : null;
 
+            const isLongTerm = document.getElementById('schedule-type-long').classList.contains('active');
+            let recurrence = null;
+            if (isLongTerm) {
+                const activeBtn = document.querySelector('#recurrence-options button.active');
+                if (activeBtn) {
+                    const type = activeBtn.dataset.type;
+                    let days = [];
+                    if (type === 'daily') {
+                        recurrence = { type: 'daily' };
+                    } else {
+                        document.querySelectorAll('input[name="recurrence-day"]:checked').forEach(cb => {
+                            days.push(isNaN(parseInt(cb.value)) ? cb.value : parseInt(cb.value));
+                        });
+                        if(days.length > 0) recurrence = { type, days };
+                    }
+                }
+            }
+            
             const scheduleData = {
                 timestamp: Date.now(),
-                eventType: document.getElementById('schedule-type-once').classList.contains('active') ? 'once' : 'long',
+                eventType: isLongTerm ? 'long' : 'once',
                 title: title,
                 importance: parseFloat(document.getElementById('importance-score').textContent),
                 deadline: deadline,
                 description: document.getElementById('schedule-description-input').value.trim(),
-                completed: false
+                completed: false,
+                recurrence: recurrence,
+                endDate: state.currentSchedule.endDate ? state.currentSchedule.endDate.toISOString() : null,
+                completedDates: [],
             };
 
             if (state.currentlyEditingScheduleId) {
+                const existing = state.schedules.find(s => s.id === state.currentlyEditingScheduleId);
                 scheduleData.id = state.currentlyEditingScheduleId;
-                const existing = state.schedules.find(s => s.id === scheduleData.id);
                 scheduleData.completed = existing.completed;
-                scheduleData.timestamp = existing.timestamp; // Preserve original creation time
+                scheduleData.timestamp = existing.timestamp;
+                scheduleData.completedDates = existing.completedDates || [];
                 await db.schedules.put(scheduleData);
                 const index = state.schedules.findIndex(s => s.id === scheduleData.id);
                 state.schedules[index] = scheduleData;
-                alert('日程已更新！');
             } else {
                 const id = await db.schedules.add(scheduleData);
                 scheduleData.id = id;
@@ -2651,17 +2959,146 @@
                 if (deadlineDate <= threeDaysLater) isUrgent = true;
             }
             
-            const isImportant = schedule.importance >= 6;
+            const isImportant = schedule.importance >= 8;
             if (isImportant && isUrgent) return 1;
             if (isImportant && !isUrgent) return 2;
             if (!isImportant && isUrgent) return 3;
             return 4;
         }
+
+        // --- NEW: Schedule Page Rendering ---
+        function updateSchedulePage() {
+            const wrapper = document.querySelector('.schedule-pages-wrapper');
+            const dots = document.querySelectorAll('.schedule-page-dots .dot');
+            const titles = ['今日待办', '所有日程', '日历视图'];
+            
+            wrapper.style.transform = `translateX(-${state.schedulePageIndex * 33.333}%)`;
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === state.schedulePageIndex));
+            document.getElementById('schedule-page-title').textContent = titles[state.schedulePageIndex];
+        }
+
         function renderSchedules() {
-            const quadrants = { 1: [], 2: [], 3: [], 4: [] };
-            const completed = [];
+            renderTodayTasks();
+            renderQuadrantView();
+            renderCalendarView();
+
+            let completedCount = state.schedules.filter(s => s.eventType === 'once' && s.completed).length;
             state.schedules.forEach(s => {
-                if (s.completed) { completed.push(s); } else { quadrants[classifySchedule(s)].push(s); }
+                if(s.eventType === 'long' && Array.isArray(s.completedDates)) {
+                    completedCount += s.completedDates.length;
+                }
+            });
+            document.getElementById('schedule-count').textContent = `已完成${completedCount}项事件🌟`;
+        }
+
+        function renderTodayTasks() {
+            const container = document.getElementById('today-tasks-content');
+            container.innerHTML = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            const todayIncomplete = [];
+            const todayCompleted = [];
+
+            state.schedules.forEach(s => {
+                let isTodayTask = false;
+                if (s.eventType === 'once') {
+                    if (s.deadline) {
+                        const deadlineDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                        if (deadlineDate.getTime() === today.getTime()) isTodayTask = true;
+                    }
+                } else if (s.eventType === 'long' && s.recurrence) {
+                    if (s.endDate && new Date(s.endDate) < today) return;
+                    if (s.deadline) {
+                        const startDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                        if (startDate > today) return;
+                    }
+
+                    const dayOfWeek = today.getDay();
+                    const dayOfMonth = today.getDate();
+                    
+                    switch (s.recurrence.type) {
+                        case 'daily': isTodayTask = true; break;
+                        case 'weekly': isTodayTask = s.recurrence.days.includes(dayOfWeek); break;
+                        case 'monthly':
+                            const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                            if (s.recurrence.days.includes('last') && dayOfMonth === daysInMonth) isTodayTask = true;
+                            else isTodayTask = s.recurrence.days.includes(dayOfMonth);
+                            break;
+                    }
+                }
+
+                if (isTodayTask) {
+                    let isCompleted = (s.eventType === 'once') ? s.completed : (s.completedDates && s.completedDates.includes(todayStr));
+                    if (isCompleted) todayCompleted.push(s);
+                    else todayIncomplete.push(s);
+                }
+            });
+
+            todayIncomplete.sort((a, b) => b.importance - a.importance);
+            todayCompleted.sort((a, b) => b.timestamp - a.timestamp);
+
+            if (todayIncomplete.length > 0) {
+                container.innerHTML += '<div class="schedule-section-title">待完成</div>';
+                todayIncomplete.forEach(s => container.appendChild(createTodayTaskItem(s, todayStr)));
+            }
+
+            if (todayCompleted.length > 0) {
+                container.innerHTML += `<div class="schedule-section-title" style="margin-top: ${todayIncomplete.length > 0 ? '20px' : '0'};">已完成</div>`;
+                todayCompleted.forEach(s => container.appendChild(createTodayTaskItem(s, todayStr)));
+            }
+
+            if (todayIncomplete.length === 0 && todayCompleted.length === 0) {
+                container.innerHTML = '<div class="empty-state">今天没有待办事项，轻松一下吧！</div>';
+            }
+        }
+        
+        function createTodayTaskItem(s, todayStr) {
+            const item = document.createElement('div');
+            item.className = 'today-task-item';
+            if (s.importance >= 8) item.classList.add('important');
+            
+            let isCompleted = (s.eventType === 'once') ? s.completed : (s.completedDates && s.completedDates.includes(todayStr));
+            if (isCompleted) item.classList.add('completed');
+            
+            item.innerHTML = `<div class="title">${s.title}</div><div class="checkbox"></div>`;
+            item.querySelector('.checkbox').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (s.eventType === 'once') {
+                    s.completed = !s.completed;
+                    await db.schedules.update(s.id, { completed: s.completed });
+                } else if (s.eventType === 'long') {
+                    if (!s.completedDates) s.completedDates = [];
+                    if (isCompleted) {
+                        s.completedDates = s.completedDates.filter(d => d !== todayStr);
+                    } else {
+                        s.completedDates.push(todayStr);
+                    }
+                    await db.schedules.update(s.id, { completedDates: s.completedDates });
+                }
+                renderSchedules();
+                renderChatMessages(false);
+            });
+            item.addEventListener('click', () => showScheduleDetailModal(s.id));
+            return item;
+        }
+
+        function renderQuadrantView() {
+            const quadrants = { 1: [], 2: [], 3: [], 4: [] };
+            const completedOnce = [];
+            const completedLong = [];
+
+            state.schedules.forEach(s => {
+                if (s.eventType === 'once') {
+                    if (s.completed) {
+                        completedOnce.push(s);
+                    } else {
+                        quadrants[classifySchedule(s)].push(s);
+                    }
+                } else if (s.eventType === 'long' && s.completedDates && s.completedDates.length > 0) {
+                    completedLong.push(s);
+                }
             });
 
             for (let i = 1; i <= 4; i++) {
@@ -2674,28 +3111,151 @@
             
             const completedContainer = document.getElementById('completed-items');
             completedContainer.innerHTML = '';
-            if (completed.length > 0) {
-                completed.sort((a, b) => b.timestamp - a.timestamp).forEach(s => completedContainer.appendChild(createScheduleItemElement(s)));
-            } else { completedContainer.innerHTML = `<div class="empty-state">还没有已完成的日程</div>`; }
+            
+            completedOnce.sort((a, b) => b.timestamp - a.timestamp);
+            completedLong.sort((a, b) => b.timestamp - a.timestamp);
+
+            const allCompleted = [...completedOnce, ...completedLong];
+
+            if (allCompleted.length > 0) {
+                allCompleted.forEach(s => completedContainer.appendChild(createScheduleItemElement(s)));
+            } else {
+                completedContainer.innerHTML = `<div class="empty-state">还没有已完成的日程</div>`;
+            }
         }
+
+        function renderCalendarView() {
+            const now = new Date();
+            renderMonthCalendarForView(now.getFullYear(), now.getMonth());
+            document.getElementById('calendar-event-list').innerHTML = ''; // Clear event list on initial render
+        }
+
+        function renderMonthCalendarForView(year, month) {
+            const container = document.getElementById('month-calendar-view');
+            const grid = document.createElement('div');
+            grid.className = 'calendar-grid';
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const eventsByDate = {};
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const checkDate = new Date(year, month, day);
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                eventsByDate[dateStr] = [];
+
+                state.schedules.forEach(s => {
+                    let isTaskForThisDay = false;
+                    if (s.eventType === 'once' && s.deadline) {
+                        const deadlineDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                        if (deadlineDate.getTime() === checkDate.getTime()) isTaskForThisDay = true;
+                    } else if (s.eventType === 'long' && s.recurrence) {
+                        if (s.endDate && new Date(s.endDate) < checkDate) return;
+                        if (s.deadline) {
+                            const startDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                            if (startDate > checkDate) return;
+                        }
+                        
+                        if (s.recurrence.type === 'daily') isTaskForThisDay = true;
+                        else if (s.recurrence.type === 'weekly') isTaskForThisDay = s.recurrence.days.includes(checkDate.getDay());
+                        else if (s.recurrence.type === 'monthly') {
+                            if (s.recurrence.days.includes('last') && day === daysInMonth) isTaskForThisDay = true;
+                            else isTaskForThisDay = s.recurrence.days.includes(day);
+                        }
+                    }
+                    if (isTaskForThisDay) eventsByDate[dateStr].push(s);
+                });
+            }
+            
+            const header = `<div class="calendar-header"><span class="calendar-month-year">${year}年 ${month + 1}月</span></div><div class="calendar-weekdays"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>`;
+            const firstDay = new Date(year, month, 1).getDay();
+
+            for (let i = 0; i < firstDay; i++) { grid.insertAdjacentHTML('beforeend', `<div></div>`); }
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = i;
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                if (eventsByDate[dateStr] && eventsByDate[dateStr].length > 0) {
+                    const hasImportant = eventsByDate[dateStr].some(s => s.importance >= 8);
+                    const dot = document.createElement('div');
+                    dot.className = `event-dot ${hasImportant ? 'important' : 'normal'}`;
+                    dayEl.appendChild(dot);
+                }
+
+                if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
+                    dayEl.classList.add('today');
+                }
+                dayEl.addEventListener('click', () => renderEventsForDate(dateStr, eventsByDate[dateStr]));
+                grid.appendChild(dayEl);
+            }
+            container.innerHTML = header;
+            container.appendChild(grid);
+        }
+        
+        function renderEventsForDate(dateStr, events) {
+            const listContainer = document.getElementById('calendar-event-list');
+            listContainer.innerHTML = `<div class="schedule-section-title">${dateStr.replace('-', '年').replace('-', '日')} 的事件</div>`;
+            if (!events || events.length === 0) {
+                listContainer.innerHTML += '<div class="empty-state">当天没有事件</div>';
+                return;
+            }
+            events.sort((a,b) => b.importance - a.importance).forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'event-item';
+                let timeStr = '';
+                if (s.deadline && s.deadline.hour !== null && s.deadline.minute !== null) {
+                    timeStr = `${String(s.deadline.hour).padStart(2,'0')}:${String(s.deadline.minute).padStart(2,'0')}`;
+                }
+                item.innerHTML = `<div class="event-title">${s.title}</div><div class="event-time">${timeStr}</div>`;
+                listContainer.appendChild(item);
+            });
+        }
+
+
         function createScheduleItemElement(schedule) {
             const item = document.createElement('div');
             item.className = 'schedule-item';
-            if (schedule.completed) item.classList.add('completed');
+            
+            let isCompleted = schedule.completed;
+            if (schedule.eventType === 'long') {
+                isCompleted = false; // In "All Schedules" view, long-term tasks are not shown as completable
+            }
+            if (isCompleted) item.classList.add('completed');
+            
             item.dataset.id = schedule.id;
-            item.innerHTML = `<div class="title">${schedule.title}</div><div class="checkbox"></div>`;
-            item.querySelector('.checkbox').addEventListener('click', async (e) => {
+
+            const detailsDiv = document.createElement('div');
+            detailsDiv.className = 'schedule-item-details';
+            detailsDiv.innerHTML = `<div class="title">${schedule.title}</div>`;
+
+            if (schedule.deadline) {
+                const ddl = document.createElement('div');
+                ddl.className = 'ddl';
+                const label = schedule.eventType === 'long' ? '开始' : 'DDL';
+                ddl.textContent = `${label}: ${formatDeadline(schedule.deadline)}`;
+                detailsDiv.appendChild(ddl);
+            }
+            
+            const checkbox = document.createElement('div');
+            checkbox.className = 'checkbox';
+            if (schedule.eventType === 'long') {
+                checkbox.style.display = 'none'; // Don't show checkbox for long term in this view
+            }
+
+            item.appendChild(detailsDiv);
+            item.appendChild(checkbox);
+            
+            checkbox.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                schedule.completed = !schedule.completed;
-                await db.schedules.update(schedule.id, { completed: schedule.completed });
-                
-                // Real-time update in chat
-                const relatedMsg = state.messages.find(m => m.relatedId === schedule.id && m.type === 'schedule');
-                if (relatedMsg) {
+                if (schedule.eventType === 'once') {
+                    schedule.completed = !schedule.completed;
+                    await db.schedules.update(schedule.id, { completed: schedule.completed });
+                    renderSchedules();
                     renderChatMessages(false);
                 }
-                
-                renderSchedules();
             });
             item.addEventListener('click', () => showScheduleDetailModal(schedule.id));
             return item;
@@ -2747,7 +3307,13 @@
         }
         function showCalendarModal() {
             const now = new Date();
-            const initialDate = state.calendarState.selectedDate || now;
+            let initialDate = now;
+            if (state.calendarState.mode === 'deadline' && state.currentSchedule.deadlineDate) {
+                initialDate = state.currentSchedule.deadlineDate;
+            } else if (state.calendarState.mode === 'endDate' && state.currentSchedule.endDate) {
+                initialDate = state.currentSchedule.endDate;
+            }
+            
             state.calendarState.year = initialDate.getFullYear();
             state.calendarState.month = initialDate.getMonth();
             renderCalendar(state.calendarState.year, state.calendarState.month);
@@ -2771,10 +3337,12 @@
                 if (year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) {
                     dayEl.classList.add('today');
                 }
-                if (state.calendarState.selectedDate && 
-                    year === state.calendarState.selectedDate.getFullYear() && 
-                    month === state.calendarState.selectedDate.getMonth() && 
-                    i === state.calendarState.selectedDate.getDate()) {
+                
+                let dateToCheck = null;
+                if (state.calendarState.mode === 'deadline') dateToCheck = state.currentSchedule.deadlineDate;
+                else if (state.calendarState.mode === 'endDate') dateToCheck = state.currentSchedule.endDate;
+
+                if (dateToCheck && year === dateToCheck.getFullYear() && month === dateToCheck.getMonth() && i === dateToCheck.getDate()) {
                     dayEl.classList.add('selected');
                 }
                 grid.appendChild(dayEl);
@@ -2782,11 +3350,11 @@
         }
         function updateDeadlineDisplay() {
             const textEl = document.getElementById('deadline-display-text');
-            if (state.calendarState.selectedDate) {
+            if (state.currentSchedule.deadlineDate) {
                 textEl.textContent = formatDeadline({
-                    year: state.calendarState.selectedDate.getFullYear(),
-                    month: state.calendarState.selectedDate.getMonth() + 1,
-                    day: state.calendarState.selectedDate.getDate()
+                    year: state.currentSchedule.deadlineDate.getFullYear(),
+                    month: state.currentSchedule.deadlineDate.getMonth() + 1,
+                    day: state.currentSchedule.deadlineDate.getDate()
                 });
                 textEl.style.color = 'var(--text-primary)';
             } else {
@@ -2796,11 +3364,25 @@
                 document.getElementById('deadline-minute-input').value = '';
             }
         }
+        function updateEndDateDisplay() {
+            const textEl = document.getElementById('end-date-display-text');
+            if (state.currentSchedule.endDate) {
+                textEl.textContent = formatDeadline({
+                    year: state.currentSchedule.endDate.getFullYear(),
+                    month: state.currentSchedule.endDate.getMonth() + 1,
+                    day: state.currentSchedule.endDate.getDate()
+                });
+                textEl.style.color = 'var(--text-primary)';
+            } else {
+                textEl.textContent = '永不结束';
+                textEl.style.color = 'var(--text-secondary)';
+            }
+        }
 
         // --- Forward to Chat ---
         async function forwardLedgerToChat() {
             const { filtered, displayCurrency } = getFilteredTransactions();
-            const isChartView = document.getElementById('ledger-view-wrapper').style.transform === 'translateX(-100%)';
+            const isChartView = document.getElementById('ledger-view-wrapper').style.transform === 'translateX(-50%)';
 
             if (isChartView) {
                 // Sync pie chart data
@@ -2992,46 +3574,213 @@
             URL.revokeObjectURL(element.href);
         }
 
-        async function exportAsJSON() { const dataToExport = { appConfig: await db.appConfig.toArray(), transactions: await db.transactions.toArray(), messages: await db.messages.toArray(), apiProxies: await db.apiProxies.toArray(), aiCharacters: await db.aiCharacters.toArray(), currencies: await db.currencies.toArray(), schedules: await db.schedules.toArray() }; download('warm-bookkeeping-backup.json', JSON.stringify(dataToExport, null, 2), 'application/json'); }
-        async function importFromJSON(event) { const file = event.target.files[0]; if (!file) return; if (!confirm('警告：这将覆盖所有现有数据！你确定要继续吗？')) { event.target.value = ''; return; } const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); await db.transaction('rw', db.tables, async () => { for(const table of db.tables) { await table.clear(); } await Promise.all([ db.appConfig.bulkAdd(data.appConfig || []), db.transactions.bulkAdd(data.transactions || []), db.messages.bulkAdd(data.messages || []), db.apiProxies.bulkAdd(data.apiProxies || []), db.aiCharacters.bulkAdd(data.aiCharacters || []), db.currencies.bulkAdd(data.currencies || []), db.schedules.bulkAdd(data.schedules || []) ]); }); alert('导入成功！应用将重新加载。'); location.reload(); } catch (err) { alert('导入失败！文件格式错误或数据损坏。'); console.error(err); } }; reader.readAsText(file, 'UTF-8'); event.target.value = ''; }
-        function exportAsTXT() { let textContent = `聊天记录导出 - ${new Date().toLocaleString()}\n群聊名称: ${state.config.chatName}\n=================================\n\n`; state.messages.forEach(msg => { const time = new Date(msg.timestamp).toLocaleString(); let sender = '我'; if (msg.role === 'assistant') { const char = state.characters.find(c => c.id === msg.senderId); sender = char ? char.name : 'AI'; } let content = ''; if (msg.type === 'text') { content = msg.content; } else if (msg.type === 'image') { content = '[图片]'; } else if (msg.type === 'transaction') { const t = state.transactions.find(t => t.id === msg.relatedId); content = t ? `[记账] ${t.type==='expense'?'支出':'收入'} ${t.amount} ${t.currency} - ${CATEGORIES[t.type].find(c=>c.id===t.category)?.name}。备注：${t.remark}` : '[已删除的记账]'; } else if (msg.type === 'schedule') { const s = state.schedules.find(s => s.id === msg.relatedId); content = s ? `[日程] ${s.title}。说明：${s.description}` : '[已删除的日程]'; } textContent += `${sender}  (${time})\n${content}\n\n`; }); download(`${state.config.chatName}-聊天记录.txt`, textContent); }
-        function setupModal(triggerId, modalId, closeBtnId, onOpen) { const modal = document.getElementById(modalId); if (triggerId) { document.getElementById(triggerId).addEventListener('click', () => { if(onOpen) onOpen(); modal.classList.add('visible'); }); } if (closeBtnId) { document.getElementById(closeBtnId).addEventListener('click', () => modal.classList.remove('visible')); } modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('visible'); }); }
-        function setupEditorModal(modalId, onSave) { const modal = document.getElementById(modalId); const saveBtn = modal.querySelector('.save-btn'); const cancelBtns = modal.querySelectorAll('.cancel-btn'); if (saveBtn && onSave) saveBtn.addEventListener('click', onSave); cancelBtns.forEach(btn => btn.addEventListener('click', () => modal.classList.remove('visible'))); }
-        function openProxyEditor(id = null) { const modal = document.getElementById('proxy-editor-modal'); const title = document.getElementById('proxy-editor-title'); const nameInput = document.getElementById('proxy-editor-name'); const urlInput = document.getElementById('proxy-editor-url'); const apikeyInput = document.getElementById('proxy-editor-apikey'); const modelsInput = document.getElementById('proxy-editor-models'); modal.dataset.id = id || ''; if (id) { const proxy = state.proxies.find(p => p.id === id); if (proxy) { title.textContent = '编辑反代'; nameInput.value = proxy.name; urlInput.value = proxy.url; apikeyInput.value = proxy.apiKey; modelsInput.value = proxy.models.join('\n'); } } else { title.textContent = '添加新反代'; [nameInput, urlInput, apikeyInput, modelsInput].forEach(i => i.value = ''); } modal.classList.add('visible'); }
-        async function saveProxy() { const modal = document.getElementById('proxy-editor-modal'); const id = parseInt(modal.dataset.id) || null; const name = document.getElementById('proxy-editor-name').value.trim(); const url = document.getElementById('proxy-editor-url').value.trim(); const apiKey = document.getElementById('proxy-editor-apikey').value.trim(); const models = document.getElementById('proxy-editor-models').value.split('\n').map(m => m.trim()).filter(Boolean); if (!name || !url || !apiKey || models.length === 0) { alert('所有字段均为必填项。'); return; } const proxyData = { name, url, apiKey, models }; if (id) { proxyData.id = id; await db.apiProxies.put(proxyData); const index = state.proxies.findIndex(p => p.id === id); if (index > -1) state.proxies[index] = proxyData; } else { const newId = await db.apiProxies.add(proxyData); state.proxies.push({ ...proxyData, id: newId }); } modal.classList.remove('visible'); renderProxyList(); }
-        function renderProxyList() { const list = document.getElementById('proxy-list'); list.innerHTML = ''; state.proxies.forEach(p => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div class="name">${p.name}</div><div class="details">${p.url}</div><div class="list-item-actions"><button data-id="${p.id}" class="edit-btn">✏️</button><button data-id="${p.id}" class="delete-btn">🗑️</button></div>`; list.appendChild(item); }); list.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', (e) => openProxyEditor(parseInt(e.currentTarget.dataset.id)))); list.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', async (e) => { const id = parseInt(e.currentTarget.dataset.id); if (confirm('确定删除吗？')) { await db.apiProxies.delete(id); state.proxies = state.proxies.filter(p => p.id !== id); renderProxyList(); } })); }
-        function openCharacterEditor(id = null) { const modal = document.getElementById('character-editor-modal'); const title = document.getElementById('character-editor-title'); const nameInput = document.getElementById('character-editor-name'); const avatarPreview = document.getElementById('character-editor-avatar-preview'); const promptInput = document.getElementById('character-editor-prompt'); const proxySelect = document.getElementById('character-editor-proxy'); const modelSelect = document.getElementById('character-editor-model'); const backupProxySelect = document.getElementById('character-editor-backup-proxy'); const backupModelSelect = document.getElementById('character-editor-backup-model'); const populateSelect = (select, data, selectedId) => { select.innerHTML = '<option value="">-- 无 --</option>'; data.forEach(item => { const option = document.createElement('option'); option.value = item.id; option.textContent = item.name; select.appendChild(option); }); if (selectedId) select.value = selectedId; }; populateSelect(proxySelect, state.proxies); populateSelect(backupProxySelect, state.proxies); const updateModels = (proxySelect, modelSelectToUpdate, selectedModel) => { const proxyId = parseInt(proxySelect.value); modelSelectToUpdate.innerHTML = ''; if (proxyId) { const proxy = state.proxies.find(p => p.id === proxyId); if (proxy) { proxy.models.forEach(m => { const option = document.createElement('option'); option.value = m; option.textContent = m; modelSelectToUpdate.appendChild(option); }); if (selectedModel) modelSelectToUpdate.value = selectedModel; } } }; proxySelect.onchange = () => updateModels(proxySelect, modelSelect); backupProxySelect.onchange = () => updateModels(backupProxySelect, backupModelSelect); document.getElementById('upload-char-avatar-btn').onclick = () => document.getElementById('character-editor-avatar-input').click(); document.getElementById('character-editor-avatar-input').onchange = (e) => { handleAvatarUpload(e, (base64) => { avatarPreview.src = base64; modal.dataset.avatar = base64; }); }; modal.dataset.id = id || ''; modal.dataset.avatar = ''; if (id) { const char = state.characters.find(c => c.id === id); if (char) { title.textContent = '编辑角色'; nameInput.value = char.name; avatarPreview.src = char.avatar || DEFAULT_AVATAR; modal.dataset.avatar = char.avatar; promptInput.value = char.prompt; populateSelect(proxySelect, state.proxies, char.proxyId); updateModels(proxySelect, modelSelect, char.model); populateSelect(backupProxySelect, state.proxies, char.backupProxyId); updateModels(backupProxySelect, backupModelSelect, char.backupModel); } } else { title.textContent = '添加新角色'; [nameInput, promptInput].forEach(i => i.value = ''); avatarPreview.src = DEFAULT_AVATAR; populateSelect(proxySelect, state.proxies); modelSelect.innerHTML = ''; populateSelect(backupProxySelect, state.proxies); backupModelSelect.innerHTML = ''; } modal.classList.add('visible'); }
-        async function saveCharacter() { const modal = document.getElementById('character-editor-modal'); const id = parseInt(modal.dataset.id) || null; const name = document.getElementById('character-editor-name').value.trim(); const avatar = modal.dataset.avatar || DEFAULT_AVATAR; const prompt = document.getElementById('character-editor-prompt').value.trim(); const proxyId = parseInt(document.getElementById('character-editor-proxy').value) || null; const model = document.getElementById('character-editor-model').value || null; const backupProxyId = parseInt(document.getElementById('character-editor-backup-proxy').value) || null; const backupModel = document.getElementById('character-editor-backup-model').value || null; if (!name || !prompt || !proxyId || !model) { alert('角色名称、Prompt、主用API和主用模型为必填项。'); return; } const charData = { name, avatar, prompt, proxyId, model, backupProxyId, backupModel }; if (id) { charData.id = id; await db.aiCharacters.put(charData); const index = state.characters.findIndex(c => c.id === id); if (index > -1) state.characters[index] = charData; } else { const newId = await db.aiCharacters.add(charData); state.characters.push({ ...charData, id: newId }); } modal.classList.remove('visible'); renderCharacterList(); }
-        function renderCharacterList() { const list = document.getElementById('character-list'); list.innerHTML = ''; state.characters.forEach(c => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div class="name">${c.name}</div><div class="list-item-actions"><button data-id="${c.id}" class="edit-btn">✏️</button><button data-id="${c.id}" class="delete-btn">🗑️</button></div>`; list.appendChild(item); }); list.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', (e) => openCharacterEditor(parseInt(e.currentTarget.dataset.id)))); list.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', async (e) => { const id = parseInt(e.currentTarget.dataset.id); if (confirm('确定删除吗？')) { await db.aiCharacters.delete(id); state.characters = state.characters.filter(c => c.id !== id); renderCharacterList(); } })); }
-        function showAICharacterSelector() { const modal = document.getElementById('ai-character-selector-modal'); const selector = document.getElementById('ai-character-selector'); selector.innerHTML = ''; if (state.characters.length === 0) { selector.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">请先在设置中添加AI角色。</p>'; } else { state.characters.forEach(char => { const item = document.createElement('div'); item.className = 'character-item'; item.innerHTML = `<img src="${char.avatar}" alt="${char.name}"><div class="name">${char.name}</div>`; item.onclick = () => { modal.classList.remove('visible'); triggerAIResponse(char); }; selector.appendChild(item); }); } modal.classList.add('visible'); }
-        function openCurrencyEditor(code = null) { const modal = document.getElementById('currency-editor-modal'); const title = document.getElementById('currency-editor-title'); const codeInput = document.getElementById('currency-editor-code'); const nameInput = document.getElementById('currency-editor-name'); const rateInput = document.getElementById('currency-editor-rate'); modal.dataset.code = code || ''; if (code) { const currency = state.currencies.find(c => c.code === code); if (currency) { title.textContent = '编辑币种'; codeInput.value = currency.code; codeInput.disabled = true; nameInput.value = currency.name; rateInput.value = currency.rate; } } else { title.textContent = '添加新币种'; [codeInput, nameInput, rateInput].forEach(i => i.value = ''); codeInput.disabled = false; } modal.classList.add('visible'); }
-        async function saveCurrency() { const modal = document.getElementById('currency-editor-modal'); const originalCode = modal.dataset.code; const code = document.getElementById('currency-editor-code').value.trim().toUpperCase(); const name = document.getElementById('currency-editor-name').value.trim(); const rate = parseFloat(document.getElementById('currency-editor-rate').value); if (!/^[A-Z]{3}$/.test(code)) { alert('币种代码必须是3位大写字母。'); return; } if (!name || isNaN(rate) || rate <= 0) { alert('请填写有效的币种名称和汇率。'); return; } if (!originalCode && state.currencies.some(c => c.code === code)) { alert('该币种代码已存在。'); return; } const currencyData = { code, name, rate }; await db.currencies.put(currencyData); if (originalCode) { const index = state.currencies.findIndex(c => c.code === originalCode); if (index > -1) state.currencies[index] = currencyData; } else { state.currencies.push(currencyData); } modal.classList.remove('visible'); renderCurrencyList(); populateLedgerCurrencyFilter(); }
-        function renderCurrencyList() { const list = document.getElementById('currency-list'); list.innerHTML = ''; state.currencies.forEach(c => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div class="name">${c.name} (${c.code})</div><div class="details">1 ${c.code} ≈ ${c.rate} RMB</div><div class="list-item-actions"><button data-code="${c.code}" class="edit-btn">✏️</button><button data-code="${c.code}" class="delete-btn">🗑️</button></div>`; list.appendChild(item); }); list.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', (e) => openCurrencyEditor(e.currentTarget.dataset.code))); list.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', async (e) => { const code = e.currentTarget.dataset.code; if (confirm('确定删除吗？')) { await db.currencies.delete(code); state.currencies = state.currencies.filter(c => c.code !== code); renderCurrencyList(); populateLedgerCurrencyFilter(); } })); }
-        function toggleSidebar() { ELS.sidebar.classList.toggle('visible'); ELS.sidebarOverlay.classList.toggle('visible'); if (ELS.sidebar.classList.contains('visible')) { const { tokens } = buildContext(state.config.maxTokens); ELS.sidebarTokenCount.textContent = tokens; } }
-        function toggleContextPreview() { const content = ELS.sidebarPreviewContent; if (content.style.display === 'block') { content.style.display = 'none'; } else { const { context } = buildContext(state.config.maxTokens); content.textContent = JSON.stringify(context, null, 2); content.style.display = 'block'; } }
-        function openSystemPromptsEditor() {
-            const { sendTime, sendModel, sendRole, ledger, schedule, pie } = state.config.systemPromptSettings;
-            document.getElementById('system-prompt-send-time').checked = sendTime;
-            document.getElementById('system-prompt-send-model').checked = sendModel;
-            document.getElementById('system-prompt-send-role').checked = sendRole;
-            document.getElementById('system-prompt-ledger').value = ledger;
-            document.getElementById('system-prompt-schedule').value = schedule;
-            document.getElementById('system-prompt-pie').value = pie;
+        async function exportAsJSON() { const dataToExport = { appConfig: await db.appConfig.toArray(), transactions: await db.transactions.toArray(), messages: await db.messages.toArray(), apiProxies: await db.apiProxies.toArray(), aiCharacters: await db.aiCharacters.toArray(), currencies: await db.currencies.toArray(), schedules: await db.schedules.toArray() }; download('Cava-Backup.json', JSON.stringify(dataToExport, null, 2), 'application/json'); }
+        async function importFromJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!confirm('导入数据将覆盖现有所有数据，确定要继续吗？')) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    await db.delete();
+                    await db.open();
+                    if(data.appConfig) await db.appConfig.bulkPut(data.appConfig);
+                    if(data.transactions) await db.transactions.bulkPut(data.transactions);
+                    if(data.messages) await db.messages.bulkPut(data.messages);
+                    if(data.apiProxies) await db.apiProxies.bulkPut(data.apiProxies);
+                    if(data.aiCharacters) await db.aiCharacters.bulkPut(data.aiCharacters);
+                    if(data.currencies) await db.currencies.bulkPut(data.currencies);
+                    if(data.schedules) await db.schedules.bulkPut(data.schedules);
+                    alert('导入成功！页面将刷新。');
+                    location.reload();
+                } catch (err) { alert(`导入失败: ${err.message}`); }
+            };
+            reader.readAsText(file);
         }
+        async function exportAsTXT() { let text = ''; state.messages.forEach(msg => { const time = new Date(msg.timestamp).toLocaleString(); let sender = '我'; if(msg.role === 'assistant') { const char = state.characters.find(c => c.id === msg.senderId); sender = char ? char.name : 'AI'; } text += `${sender} ${time}\n`; if(msg.type === 'text') text += msg.content; else if (msg.type === 'image') text += '[图片]'; else text += `[${msg.type}消息]`; text += '\n\n'; }); download('Cava-ChatHistory.txt', text); }
+        function toggleSidebar() { ELS.sidebar.classList.toggle('visible'); ELS.sidebarOverlay.classList.toggle('visible'); }
+        async function toggleContextPreview() { if (ELS.sidebarPreviewContent.style.display === 'block') { ELS.sidebarPreviewContent.style.display = 'none'; return; } const { context, tokens } = buildContext(state.config.maxTokens); ELS.sidebarTokenCount.textContent = tokens; ELS.sidebarPreviewContent.textContent = JSON.stringify(context, null, 2); ELS.sidebarPreviewContent.style.display = 'block'; }
+        
+        // --- Modal Helpers ---
+        function setupModal(triggerId, modalId, closeId, onOpen) {
+            const modal = document.getElementById(modalId);
+            if (triggerId) { document.getElementById(triggerId).addEventListener('click', () => { if (onOpen) onOpen(); modal.classList.add('visible'); }); }
+            if (closeId) { document.getElementById(closeId).addEventListener('click', () => modal.classList.remove('visible')); }
+        }
+        function setupEditorModal(modalId, onSave) {
+            const modal = document.getElementById(modalId);
+            modal.querySelector('.save-btn')?.addEventListener('click', () => { if(onSave) onSave(); });
+            modal.querySelector('.cancel-btn')?.addEventListener('click', () => modal.classList.remove('visible'));
+        }
+        
+        // --- RESTORED SETTINGS FUNCTIONS ---
+        let editingProxyId = null;
+        function renderProxyList() { const list = document.getElementById('proxy-list'); list.innerHTML = ''; if (state.proxies.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有任何反代，快添加一个吧！</p>'; } state.proxies.forEach(p => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div class="name">${p.name || '未命名反代'}</div><div class="details">URL: ${p.url}</div><div class="list-item-actions"><button class="edit-proxy" data-id="${p.id}">✏️</button><button class="delete-proxy" data-id="${p.id}">🗑️</button></div>`; item.querySelector('.edit-proxy').addEventListener('click', () => openProxyEditor(p.id)); item.querySelector('.delete-proxy').addEventListener('click', () => deleteProxy(p.id)); list.appendChild(item); }); }
+        function openProxyEditor(id = null) { editingProxyId = id; const modal = document.getElementById('proxy-editor-modal'); const title = document.getElementById('proxy-editor-title'); const name = document.getElementById('proxy-editor-name'); const url = document.getElementById('proxy-editor-url'); const apikey = document.getElementById('proxy-editor-apikey'); const models = document.getElementById('proxy-editor-models'); if (id) { const proxy = state.proxies.find(p => p.id === id); title.textContent = "编辑反代"; name.value = proxy.name || ''; url.value = proxy.url; apikey.value = proxy.apiKey; models.value = proxy.models ? proxy.models.split(',').join('\n') : ''; } else { title.textContent = "添加新反代"; name.value = ''; url.value = ''; apikey.value = ''; models.value = ''; } modal.classList.add('visible'); }
+        async function saveProxy() { const modelsValue = document.getElementById('proxy-editor-models').value.trim().split('\n').map(m => m.trim()).filter(Boolean).join(','); const proxyData = { name: document.getElementById('proxy-editor-name').value.trim(), url: document.getElementById('proxy-editor-url').value.trim(), apiKey: document.getElementById('proxy-editor-apikey').value.trim(), models: modelsValue }; if (editingProxyId) { proxyData.id = editingProxyId; await db.apiProxies.put(proxyData); const index = state.proxies.findIndex(p => p.id === editingProxyId); state.proxies[index] = proxyData; } else { const id = await db.apiProxies.add(proxyData); state.proxies.push({ ...proxyData, id }); } renderProxyList(); document.getElementById('proxy-editor-modal').classList.remove('visible'); }
+        async function deleteProxy(id) { if (confirm('确定要删除这个反代吗？')) { await db.apiProxies.delete(id); state.proxies = state.proxies.filter(p => p.id !== id); renderProxyList(); } }
+        
+        let editingCharId = null;
+        function renderCharacterList() { const list = document.getElementById('character-list'); list.innerHTML = ''; if (state.characters.length === 0) { list.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">还没有任何角色，快创建一个吧！</p>'; } state.characters.forEach(c => { const item = document.createElement('div'); item.className = 'list-item-setting'; item.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><img src="${c.avatar || DEFAULT_AVATAR}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;"><span class="name">${c.name}</span></div><div class="list-item-actions"><button class="edit-char" data-id="${c.id}">✏️</button><button class="delete-char" data-id="${c.id}">🗑️</button></div>`; item.querySelector('.edit-char').addEventListener('click', () => openCharacterEditor(c.id)); item.querySelector('.delete-char').addEventListener('click', () => deleteCharacter(c.id)); list.appendChild(item); }); }
+        function populateModelsForProxy(proxySelectId, modelSelectId, selectedProxyId, selectedModel) { const modelSelect = document.getElementById(modelSelectId); modelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; if (!selectedProxyId) return; const proxy = state.proxies.find(p => p.id === parseInt(selectedProxyId)); if (proxy && proxy.models) { modelSelect.innerHTML = '<option value="">-- 选择模型 --</option>'; const models = proxy.models.split(',').map(m => m.trim()).filter(Boolean); models.forEach(modelName => { const option = document.createElement('option'); option.value = modelName; option.textContent = modelName; if (modelName === selectedModel) { option.selected = true; } modelSelect.appendChild(option); }); } }
+        function openCharacterEditor(id = null) { 
+            editingCharId = id; 
+            const modal = document.getElementById('character-editor-modal'); 
+            const title = document.getElementById('character-editor-title'); 
+            const name = document.getElementById('character-editor-name'); 
+            const avatarPreview = document.getElementById('character-editor-avatar-preview'); 
+            const prompt = document.getElementById('character-editor-prompt'); 
+            const proxySelect = document.getElementById('character-editor-proxy'); 
+            const backupProxySelect = document.getElementById('character-editor-backup-proxy'); 
+            const modelSelect = document.getElementById('character-editor-model'); 
+            const backupModelSelect = document.getElementById('character-editor-backup-model'); 
+            
+            proxySelect.innerHTML = '<option value="">-- 选择主用API --</option>'; 
+            backupProxySelect.innerHTML = '<option value="">-- 选择备用API --</option>'; 
+            state.proxies.forEach(p => { const optionText = p.name || p.url; const option = `<option value="${p.id}">${optionText}</option>`; proxySelect.innerHTML += option; backupProxySelect.innerHTML += option; }); 
+            proxySelect.onchange = () => populateModelsForProxy('character-editor-proxy', 'character-editor-model', proxySelect.value, null); 
+            backupProxySelect.onchange = () => populateModelsForProxy('character-editor-backup-proxy', 'character-editor-backup-model', backupProxySelect.value, null); 
+            
+            document.getElementById('upload-char-avatar-btn').onclick = () => document.getElementById('character-editor-avatar-input').click();
+            document.getElementById('character-editor-avatar-input').onchange = (e) => {
+                handleAvatarUpload(e, (base64) => { avatarPreview.src = base64; });
+            };
+
+            if (id) { 
+                const char = state.characters.find(c => c.id === id); 
+                title.textContent = "编辑角色"; name.value = char.name; 
+                avatarPreview.src = char.avatar || DEFAULT_AVATAR; 
+                prompt.value = char.prompt; 
+                proxySelect.value = char.proxyId; 
+                populateModelsForProxy('character-editor-proxy', 'character-editor-model', char.proxyId, char.model); 
+                backupProxySelect.value = char.backupProxyId; 
+                populateModelsForProxy('character-editor-backup-proxy', 'character-editor-backup-model', char.backupProxyId, char.backupModel); 
+            } else { 
+                title.textContent = "添加新角色"; 
+                name.value = ''; 
+                avatarPreview.src = DEFAULT_AVATAR; 
+                prompt.value = ''; 
+                proxySelect.value = ''; 
+                backupProxySelect.value = ''; 
+                modelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; 
+                backupModelSelect.innerHTML = '<option value="">-- 请先选API --</option>'; 
+            } 
+            modal.classList.add('visible'); 
+        }
+        async function saveCharacter() { const charData = { name: document.getElementById('character-editor-name').value, avatar: document.getElementById('character-editor-avatar-preview').src, prompt: document.getElementById('character-editor-prompt').value, proxyId: parseInt(document.getElementById('character-editor-proxy').value) || null, model: document.getElementById('character-editor-model').value, backupProxyId: parseInt(document.getElementById('character-editor-backup-proxy').value) || null, backupModel: document.getElementById('character-editor-backup-model').value }; if (editingCharId) { charData.id = editingCharId; await db.aiCharacters.put(charData); const index = state.characters.findIndex(c => c.id === editingCharId); state.characters[index] = charData; } else { const id = await db.aiCharacters.add(charData); state.characters.push({ ...charData, id }); } renderCharacterList(); renderChatMessages(); document.getElementById('character-editor-modal').classList.remove('visible'); }
+        async function deleteCharacter(id) { if (confirm('确定要删除这个角色吗？')) { await db.aiCharacters.delete(id); state.characters = state.characters.filter(c => c.id !== id); renderCharacterList(); renderChatMessages(); } }
+        
+        let currentlyEditingCurrencyCode = null;
+        function openCurrencyEditor(curr = null) {
+            const modal = document.getElementById('currency-editor-modal');
+            currentlyEditingCurrencyCode = curr ? curr.code : null;
+            document.getElementById('currency-editor-title').textContent = curr ? '编辑币种' : '新建币种';
+            document.getElementById('currency-editor-code').value = curr ? curr.code : '';
+            document.getElementById('currency-editor-code').disabled = !!curr;
+            document.getElementById('currency-editor-name').value = curr ? curr.name : '';
+            document.getElementById('currency-editor-rate').value = curr ? curr.rate : '';
+            modal.classList.add('visible');
+        }
+        
+        async function saveCurrency() {
+            const code = document.getElementById('currency-editor-code').value.trim().toUpperCase();
+            const name = document.getElementById('currency-editor-name').value.trim();
+            const rate = parseFloat(document.getElementById('currency-editor-rate').value);
+
+            if (!code || !name || isNaN(rate)) { alert('请填写所有字段'); return; }
+            if (code.length !== 3) { alert('币种代码必须是3位字母'); return; }
+
+            const currencyData = { code, name, rate };
+            await db.currencies.put(currencyData);
+            
+            state.currencies = await db.currencies.toArray();
+            renderCurrencyList();
+            populateLedgerCurrencyFilter();
+            document.getElementById('currency-editor-modal').classList.remove('visible');
+        }
+
+        function renderCurrencyList() {
+            const listEl = document.getElementById('currency-list');
+            listEl.innerHTML = '';
+            const allCurrencies = [{code: 'RMB', name: '人民币', rate: 1, isBase: true}, ...state.currencies];
+            
+            allCurrencies.forEach(curr => {
+                const item = document.createElement('div');
+                item.className = 'list-item-setting';
+                item.innerHTML = `<div class="name">${curr.name} (${curr.code})</div><div class="details">1 ${curr.code} ≈ ${curr.rate} RMB</div>`;
+                
+                if (!curr.isBase) {
+                    const actions = document.createElement('div');
+                    actions.className = 'list-item-actions';
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.innerHTML = '✏️';
+                    editBtn.onclick = () => openCurrencyEditor(curr);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.innerHTML = '🗑️';
+                    deleteBtn.onclick = async () => {
+                        if (confirm(`确定要删除 "${curr.name}" 吗？`)) {
+                            await db.currencies.delete(curr.code);
+                            state.currencies = state.currencies.filter(c => c.code !== curr.code);
+                            renderCurrencyList();
+                            populateLedgerCurrencyFilter();
+                        }
+                    };
+                    
+                    actions.append(editBtn, deleteBtn);
+                    item.appendChild(actions);
+                }
+                listEl.appendChild(item);
+            });
+        }
+        
+        function openSystemPromptsEditor() {
+            const settings = state.config.systemPromptSettings || DEFAULT_SYSTEM_PROMPTS;
+            document.getElementById('system-prompt-send-time').checked = settings.sendTime;
+            document.getElementById('system-prompt-send-model').checked = settings.sendModel;
+            document.getElementById('system-prompt-send-role').checked = settings.sendRole;
+            document.getElementById('system-prompt-ledger').value = settings.ledger;
+            document.getElementById('system-prompt-schedule').value = settings.schedule;
+            document.getElementById('system-prompt-pie').value = settings.pie;
+            document.getElementById('system-prompts-modal').classList.add('visible');
+        }
+
         async function saveSystemPrompts() {
             const newSettings = {
                 sendTime: document.getElementById('system-prompt-send-time').checked,
                 sendModel: document.getElementById('system-prompt-send-model').checked,
                 sendRole: document.getElementById('system-prompt-send-role').checked,
-                ledger: document.getElementById('system-prompt-ledger').value.trim(),
-                schedule: document.getElementById('system-prompt-schedule').value.trim(),
-                pie: document.getElementById('system-prompt-pie').value.trim()
+                ledger: document.getElementById('system-prompt-ledger').value.trim() || DEFAULT_SYSTEM_PROMPTS.ledger,
+                schedule: document.getElementById('system-prompt-schedule').value.trim() || DEFAULT_SYSTEM_PROMPTS.schedule,
+                pie: document.getElementById('system-prompt-pie').value.trim() || DEFAULT_SYSTEM_PROMPTS.pie,
             };
             await updateConfig('systemPromptSettings', newSettings);
             document.getElementById('system-prompts-modal').classList.remove('visible');
-            alert('系统提示词已保存！');
+        }
+        
+        function showAICharacterSelector() {
+            const selector = document.getElementById('ai-character-selector');
+            selector.innerHTML = '';
+            if(state.characters.length === 0){
+                alert('请先在“设置”中添加AI角色');
+                return;
+            }
+            state.characters.forEach(char => {
+                const item = document.createElement('div');
+                item.className = 'character-item';
+                item.innerHTML = `<img src="${char.avatar || DEFAULT_AVATAR}" alt="${char.name}"><div class="name">${char.name}</div>`;
+                item.onclick = () => {
+                    document.getElementById('ai-character-selector-modal').classList.remove('visible');
+                    triggerAIResponse(char);
+                };
+                selector.appendChild(item);
+            });
+            document.getElementById('ai-character-selector-modal').classList.add('visible');
         }
 
+        // Call init
         init();
     });
     </script>
