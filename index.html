@@ -877,6 +877,7 @@
             background-color: var(--bg-secondary); border-radius: 8px;
             box-shadow: 0 2px 5px var(--shadow-light);
             margin-bottom: 8px;
+            cursor: pointer;
         }
         .today-task-item.important {
             background-color: var(--schedule-urgent-important);
@@ -1876,9 +1877,10 @@
                     const s = state.schedules.find(s => s.id === msg.relatedId);
                     if(!s) continue;
                     const deadlineStr = s.deadline ? formatDeadline(s.deadline) : '无';
-                    const descriptionText = s.description ? `说明是“${s.description}”` : "无";
+                    const descriptionText = s.description ? `说明是"${s.description}"` : "无";
                     const statusText = s.completed ? '已完成' : '未完成';
-                    content = `[日程提醒] 我定了个事：'${s.title}'。重要程度是 ${s.importance.toFixed(1)}/10，截止日期是 ${deadlineStr}，${descriptionText}，当前状态：${statusText}。`;
+                    const eventTypeStr = s.eventType === 'long' ? '长期事件' : '单次事件';
+                    content = `[日程提醒-${eventTypeStr}] 我定了个${eventTypeStr}：'${s.title}'。重要程度是 ${s.importance.toFixed(1)}/10，截止日期是 ${deadlineStr}，${descriptionText}，当前状态：${statusText}。`;
                     msgTokens = content.length * 2;
                 } else if (msg.type === 'image') {
                     content = [{ type: "image_url", image_url: { url: msg.content } }];
@@ -2993,14 +2995,15 @@
 
         function renderTodayTasks() {
             const container = document.getElementById('today-tasks-content');
-            container.innerHTML = '';
+            container.innerHTML = ''; // 这一行保持不变，用于清空
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             
             const todayIncomplete = [];
             const todayCompleted = [];
-
+        
+            // 这部分筛选逻辑保持不变
             state.schedules.forEach(s => {
                 let isTodayTask = false;
                 if (s.eventType === 'once') {
@@ -3014,7 +3017,7 @@
                         const startDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
                         if (startDate > today) return;
                     }
-
+        
                     const dayOfWeek = today.getDay();
                     const dayOfMonth = today.getDate();
                     
@@ -3028,27 +3031,42 @@
                             break;
                     }
                 }
-
+        
                 if (isTodayTask) {
                     let isCompleted = (s.eventType === 'once') ? s.completed : (s.completedDates && s.completedDates.includes(todayStr));
                     if (isCompleted) todayCompleted.push(s);
                     else todayIncomplete.push(s);
                 }
             });
-
+        
             todayIncomplete.sort((a, b) => b.importance - a.importance);
             todayCompleted.sort((a, b) => b.timestamp - a.timestamp);
-
+        
+            // --- 这是唯一的修改之处 ---
             if (todayIncomplete.length > 0) {
-                container.innerHTML += '<div class="schedule-section-title">待完成</div>';
+                // 【修复】不再使用 innerHTML +=，而是使用 appendChild
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'schedule-section-title';
+                titleDiv.textContent = '待完成';
+                container.appendChild(titleDiv);
+        
                 todayIncomplete.forEach(s => container.appendChild(createTodayTaskItem(s, todayStr)));
             }
-
+        
             if (todayCompleted.length > 0) {
-                container.innerHTML += `<div class="schedule-section-title" style="margin-top: ${todayIncomplete.length > 0 ? '20px' : '0'};">已完成</div>`;
+                // 【修复】不再使用 innerHTML +=，而是使用 appendChild
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'schedule-section-title';
+                titleDiv.textContent = '已完成';
+                if (todayIncomplete.length > 0) {
+                    titleDiv.style.marginTop = '20px';
+                }
+                container.appendChild(titleDiv);
+        
                 todayCompleted.forEach(s => container.appendChild(createTodayTaskItem(s, todayStr)));
             }
-
+            // --- 修改结束 ---
+        
             if (todayIncomplete.length === 0 && todayCompleted.length === 0) {
                 container.innerHTML = '<div class="empty-state">今天没有待办事项，轻松一下吧！</div>';
             }
@@ -3197,11 +3215,32 @@
         
         function renderEventsForDate(dateStr, events) {
             const listContainer = document.getElementById('calendar-event-list');
-            listContainer.innerHTML = `<div class="schedule-section-title">${dateStr.replace('-', '年'). replace('-', '月').replace('-', '日') }的事件</div>`;
+            // 1. 总是先清空容器，这是一个好习惯，可以避免很多奇怪的问题
+            listContainer.innerHTML = '';
+
+            // 2. 拆分日期字符串，然后按正确的中文格式重新组合
+            const parts = dateStr.split('-'); // 例如，将 '2025-09-12' 拆分为数组 ['2025', '09', '12']
+            const year = parts[0];
+            const month = Number(parts[1]); // Number() 会将 '09' 变为 9
+            const day = Number(parts[2]);
+            const formattedDate = `${year}年${month}月${day}日`; // 拼接成 "2025年9月12日"
+
+            // 3. 创建标题元素并添加到容器中
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'schedule-section-title';
+            titleDiv.textContent = `${formattedDate} 的事件`;
+            listContainer.appendChild(titleDiv);
+
+            // 4. 检查是否有事件，并添加对应的内容
             if (!events || events.length === 0) {
-                listContainer.innerHTML += '<div class="empty-state">当天没有事件</div>';
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-state';
+                emptyDiv.textContent = '当天没有事件';
+                listContainer.appendChild(emptyDiv);
                 return;
             }
+
+            // 5. 如果有事件，则逐个创建并添加到容器中（这部分逻辑和原来保持一致）
             events.sort((a,b) => b.importance - a.importance).forEach(s => {
                 const item = document.createElement('div');
                 item.className = 'event-item';
@@ -3598,7 +3637,56 @@
             };
             reader.readAsText(file);
         }
-        async function exportAsTXT() { let text = ''; state.messages.forEach(msg => { const time = new Date(msg.timestamp).toLocaleString(); let sender = '我'; if(msg.role === 'assistant') { const char = state.characters.find(c => c.id === msg.senderId); sender = char ? char.name : 'AI'; } text += `${sender} ${time}\n`; if(msg.type === 'text') text += msg.content; else if (msg.type === 'image') text += '[图片]'; else text += `[${msg.type}消息]`; text += '\n\n'; }); download('Cava-ChatHistory.txt', text); }
+        async function exportAsTXT() {
+            let content = `=== ${state.config.chatName} 导出记录 ===\n`;
+            content += `导出时间: ${new Date().toLocaleString()}\n\n`;
+            
+            state.messages.forEach(msg => {
+                const time = new Date(msg.timestamp).toLocaleString();
+                let text = '';
+                
+                if (msg.type === 'text') {
+                    text = msg.content;
+                } else if (msg.type === 'transaction') {
+                    const t = state.transactions.find(t => t.id === msg.relatedId);
+                    if (t) {
+                        const category = CATEGORIES[t.type].find(c => c.id === t.category);
+                        text = `[记账] ${t.type === 'expense' ? '支出' : '收入'} ${t.amount}${t.currency} - ${category?.name || '未知'} - 备注: ${t.remark || '无'}`;
+                    }
+                } else if (msg.type === 'schedule') {
+                    const s = state.schedules.find(s => s.id === msg.relatedId);
+                    if (s) {
+                        const deadlineStr = s.deadline ? formatDeadline(s.deadline) : '无';
+                        const eventTypeStr = s.eventType === 'long' ? '长期事件' : '单次事件';
+                        text = `[日程-${eventTypeStr}] ${s.title} - 重要度: ${s.importance.toFixed(1)} - 截止: ${deadlineStr} - 说明: ${s.description || '无'} - 状态: ${s.completed ? '已完成' : '未完成'}`;
+                    }
+                } else if (msg.type === 'image') {
+                    text = '[图片]';
+                } else if (msg.type === 'ledger_summary') {
+                    text = '[账本摘要同步]';
+                } else if (msg.type === 'schedule_summary') {
+                    text = '[日程摘要同步]';
+                } else if (msg.type === 'pie_chart_summary') {
+                    text = '[图表分析同步]';
+                }
+                
+                let sender = msg.role === 'user' ? '我' : 'AI';
+                if (msg.role === 'assistant' && msg.senderId) {
+                    const character = state.characters.find(c => c.id === msg.senderId);
+                    if (character) sender = character.name;
+                }
+                
+                content += `[${time}] ${sender}: ${text}\n\n`;
+            });
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${state.config.chatName}_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
         function toggleSidebar() { ELS.sidebar.classList.toggle('visible'); ELS.sidebarOverlay.classList.toggle('visible'); }
         async function toggleContextPreview() { if (ELS.sidebarPreviewContent.style.display === 'block') { ELS.sidebarPreviewContent.style.display = 'none'; return; } const { context, tokens } = buildContext(state.config.maxTokens); ELS.sidebarTokenCount.textContent = tokens; ELS.sidebarPreviewContent.textContent = JSON.stringify(context, null, 2); ELS.sidebarPreviewContent.style.display = 'block'; }
         
