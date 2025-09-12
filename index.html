@@ -3152,7 +3152,7 @@
         function classifySchedule(schedule) {
             const now = new Date();
             now.setHours(0,0,0,0);
-            const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+            const threeDaysLater = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
             let isUrgent = false;
 
             if (schedule.eventType !== 'long' && schedule.deadline) {
@@ -3160,7 +3160,7 @@
                 if (deadlineDate <= threeDaysLater) isUrgent = true;
             }
             
-            const isImportant = schedule.importance >= 8;
+            const isImportant = schedule.importance >= 6;
             if (isImportant && isUrgent) return 1;
             if (isImportant && !isUrgent) return 2;
             if (!isImportant && isUrgent) return 3;
@@ -3274,7 +3274,7 @@
         function createTodayTaskItem(s, todayStr) {
             const item = document.createElement('div');
             item.className = 'today-task-item';
-            if (s.importance >= 8) item.classList.add('important');
+            if (s.importance >= 6) item.classList.add('important');
             
             let isCompleted = (s.eventType === 'once') ? s.completed : (s.completedDates && s.completedDates.includes(todayStr));
             if (isCompleted) item.classList.add('completed');
@@ -3396,7 +3396,7 @@
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
 
                 if (eventsByDate[dateStr] && eventsByDate[dateStr].length > 0) {
-                    const hasImportant = eventsByDate[dateStr].some(s => s.importance >= 8);
+                    const hasImportant = eventsByDate[dateStr].some(s => s.importance >= 6);
                     const dot = document.createElement('div');
                     dot.className = `event-dot ${hasImportant ? 'important' : 'normal'}`;
                     dayEl.appendChild(dot);
