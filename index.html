@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Cava记事本1.0beta</title>
+    <title>Cava记事本1.2beta</title>
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
@@ -1268,7 +1268,14 @@
                 <div class="header">
                     <div class="left-action"></div>
                     <div class="center-title"><span id="schedule-page-title">今日待办</span></div>
-                    <div class="right-action"><span class="action-btn" id="forward-schedule-btn">➣</span></div>
+                    <div class="right-action">
+                        <select id="schedule-forward-select" style="border: 1px solid var(--accent-primary); background: var(--bg-secondary); color: var(--text-primary); border-radius: 8px; padding: 4px 8px; font-size: 14px;">
+                            <option value="">同步选项</option>
+                            <option value="today">今日待办</option>
+                            <option value="calendar">日历视图</option>
+                            <option value="all">全部日程</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="schedule-swipe-container">
                     <div class="schedule-pages-wrapper">
@@ -1473,7 +1480,8 @@
     <div id="currency-editor-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header" id="currency-editor-title">编辑币种</div><div class="modal-body"><div class="form-group"><label>币种代码 (3位大写字母)</label><input type="text" id="currency-editor-code" placeholder="例如: HKD, USD" maxlength="3" style="text-transform:uppercase;"></div><div class="form-group"><label>币种名称</label><input type="text" id="currency-editor-name" placeholder="例如: 港币, 美元"></div><div class="form-group"><label>对 RMB 的汇率 (1 币种 = ? RMB)</label><input type="number" id="currency-editor-rate" placeholder="例如: 0.92"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">保存</button></div></div></div>
     <div id="system-prompts-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">管理系统提示词</div><div class="modal-body"><div class="setting-group" style="margin-bottom: 15px;"><div class="setting-group-title" style="margin-bottom: 10px;">附加信息</div><div class="toggle-switch"><label for="system-prompt-send-time">发送当前时间</label><label class="switch"><input type="checkbox" id="system-prompt-send-time"><span class="slider"></span></label></div><div class="toggle-switch"><label for="system-prompt-send-model">发送当前模型</label><label class="switch"><input type="checkbox" id="system-prompt-send-model"><span class="slider"></span></label></div><div class="toggle-switch"><label for="system-prompt-send-role">发送AI角色名</label><label class="switch"><input type="checkbox" id="system-prompt-send-role"><span class="slider"></span></label></div></div><div class="setting-group"><div class="setting-group-title">同步提示词模板</div><div class="form-group" style="margin-bottom: 10px;"><label for="system-prompt-ledger">同步账本</label><textarea id="system-prompt-ledger" rows="2"></textarea></div><div class="form-group" style="margin-bottom: 10px;"><label for="system-prompt-schedule">同步日程</label><textarea id="system-prompt-schedule" rows="2"></textarea></div><div class="form-group"><label for="system-prompt-pie">同步图表</label><textarea id="system-prompt-pie" rows="2"></textarea></div></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">保存</button></div></div></div>
     <div id="ledger-month-filter-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">选择月份</div><div class="modal-body"><div class="filter-list" id="month-filter-list"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">确定</button></div></div></div>
-    <div id="ledger-category-filter-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">选择分类</div><div class="modal-body"><div class="filter-tabs"><div class="filter-tab active" data-type="expense">支出</div><div class="filter-tab" data-type="income">收入</div></div><div class="filter-list" id="category-filter-list"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">确定</button></div></div></div>
+<div id="ledger-category-filter-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">选择分类</div><div class="modal-body"><div class="filter-tabs"><div class="filter-tab active" data-type="expense">支出</div><div class="filter-tab" data-type="income">收入</div></div><div class="filter-list" id="category-filter-list"></div></div><div class="modal-footer"><button class="cancel-btn">取消</button><button class="save-btn">确定</button></div></div></div>
+<div id="ledger-detail-modal" class="modal-overlay"><div class="modal-content"><div class="modal-header">记账详情</div><div class="modal-body"><div class="detail-row"><div class="detail-label">类型</div><div class="detail-value" id="ledger-detail-type"></div></div><div class="detail-row"><div class="detail-label">分类</div><div class="detail-value" id="ledger-detail-category"></div></div><div class="detail-row"><div class="detail-label">金额</div><div class="detail-value" id="ledger-detail-amount"></div></div><div class="detail-row"><div class="detail-label">备注</div><div class="detail-value" id="ledger-detail-remark"></div></div><div class="detail-row"><div class="detail-label">时间</div><div class="detail-value" id="ledger-detail-time"></div></div></div><div class="modal-footer"><button class="cancel-btn" id="edit-ledger-btn">编辑</button><button class="cancel-btn" style="background-color: var(--expense-color); color: white;" id="delete-ledger-btn">删除</button><button class="cancel-btn" id="close-ledger-detail-modal">关闭</button></div></div></div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -1509,6 +1517,8 @@
             currentlyEditingTransactionId: null,
             currentlyEditingScheduleId: null,
             schedulePageIndex: 0,
+            messagesDisplayed: 50,
+            isLoadingMore: false,
         };
         
         const ELS = {
@@ -1620,6 +1630,15 @@
             
             ELS.chatInput.addEventListener('input', updateSendButtonState);
             ELS.sendBtn.addEventListener('click', sendUserMessage);
+            ELS.chatMessages.addEventListener('scroll', () => {
+                if (state.isLoadingMore) return;
+                if (ELS.chatMessages.scrollTop < 100 && state.messagesDisplayed < state.messages.length) {
+                    state.isLoadingMore = true;
+                    state.messagesDisplayed = Math.min(state.messagesDisplayed + 50, state.messages.length);
+                    renderChatMessages(false, false);
+                    setTimeout(() => { state.isLoadingMore = false; }, 100);
+                }
+            });
             
             document.getElementById('plus-btn').addEventListener('click', togglePlusMenu);
             document.getElementById('add-transaction-btn').addEventListener('click', () => { hidePlusMenu(); showTransactionPanel(); });
@@ -1646,7 +1665,122 @@
             ELS.ledgerSort.addEventListener('change', renderLedger);
             ELS.ledgerCurrency.addEventListener('change', renderLedger);
             document.getElementById('forward-ledger-btn').addEventListener('click', forwardLedgerToChat);
-            document.getElementById('forward-schedule-btn').addEventListener('click', forwardScheduleToChat);
+            document.getElementById('schedule-forward-select').addEventListener('change', async (e) => {
+                        const type = e.target.value;
+                        if (!type) return;
+                        
+                        if (type === 'today') {
+                            await forwardTodayTasksToChat();
+                        } else if (type === 'calendar') {
+                            await forwardCalendarViewToChat();
+                        } else if (type === 'all') {
+                            await forwardScheduleToChat();
+                        }
+                        
+                        e.target.value = ''; // Reset select
+                    });
+                    
+                    async function forwardTodayTasksToChat() {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                        
+                        const todayTasks = state.schedules.filter(s => {
+                            if (s.eventType === 'once') {
+                                if (!s.deadline) return false;
+                                const dDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                                dDate.setHours(0, 0, 0, 0);
+                                return dDate.getTime() === today.getTime();
+                            } else if (s.eventType === 'long') {
+                                if (!s.recurrence) return false;
+                                if (s.endDate && new Date(s.endDate) < today) return false;
+                                if (s.deadline) {
+                                    const startDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                                    if (startDate > today) return false;
+                                }
+                                
+                                if (s.recurrence.type === 'daily') return true;
+                                if (s.recurrence.type === 'weekly') {
+                                    return s.recurrence.days && s.recurrence.days.includes(today.getDay());
+                                }
+                                if (s.recurrence.type === 'monthly') {
+                                    const dayOfMonth = today.getDate();
+                                    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                                    return s.recurrence.days && (s.recurrence.days.includes(dayOfMonth) || 
+                                           (s.recurrence.days.includes('last') && dayOfMonth === lastDay));
+                                }
+                            }
+                            return false;
+                        });
+                    
+                        const pending = [];
+                        const completed = [];
+                        
+                        todayTasks.forEach(task => {
+                            const isCompleted = task.eventType === 'once' ? task.completed : 
+                                              (task.completedDates && task.completedDates.includes(todayStr));
+                            if (isCompleted) completed.push(task);
+                            else pending.push(task);
+                        });
+                    
+                        const summaryData = { pending, completed, date: todayStr };
+                        
+                        const newMsg = { timestamp: Date.now(), role: 'user', content: JSON.stringify(summaryData), type: 'today_tasks_summary' };
+                        const id = await db.messages.add(newMsg);
+                        state.messages.push({ ...newMsg, id });
+                        navigateTo('accounting-screen');
+                        renderChatMessages(true, true);
+                    }
+                    
+                    async function forwardCalendarViewToChat() {
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = today.getMonth();
+                        const monthDays = new Date(year, month + 1, 0).getDate();
+                        
+                        const monthEvents = {};
+                        
+                        for (let day = 1; day <= monthDays; day++) {
+                            const date = new Date(year, month, day);
+                            const events = state.schedules.filter(s => {
+                                if (s.eventType === 'once') {
+                                    if (!s.deadline) return false;
+                                    const dDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                                    return dDate.getFullYear() === year && dDate.getMonth() === month && dDate.getDate() === day;
+                                } else if (s.eventType === 'long') {
+                                    if (!s.recurrence) return false;
+                                    if (s.endDate && new Date(s.endDate) < date) return false;
+                                    if (s.deadline) {
+                                        const startDate = new Date(s.deadline.year, s.deadline.month - 1, s.deadline.day);
+                                        if (startDate > date) return false;
+                                    }
+                                    
+                                    if (s.recurrence.type === 'daily') return true;
+                                    if (s.recurrence.type === 'weekly') {
+                                        return s.recurrence.days && s.recurrence.days.includes(date.getDay());
+                                    }
+                                    if (s.recurrence.type === 'monthly') {
+                                        const lastDay = new Date(year, month + 1, 0).getDate();
+                                        return s.recurrence.days && (s.recurrence.days.includes(day) || 
+                                               (s.recurrence.days.includes('last') && day === lastDay));
+                                    }
+                                }
+                                return false;
+                            });
+                            
+                            if (events.length > 0) {
+                                monthEvents[day] = events.map(e => ({ title: e.title, type: e.eventType }));
+                            }
+                        }
+                        
+                        const summaryData = { year, month: month + 1, events: monthEvents };
+                        
+                        const newMsg = { timestamp: Date.now(), role: 'user', content: JSON.stringify(summaryData), type: 'calendar_view_summary' };
+                        const id = await db.messages.add(newMsg);
+                        state.messages.push({ ...newMsg, id });
+                        navigateTo('accounting-screen');
+                        renderChatMessages(true, true);
+                    }
 
             setupModal('manage-proxies-btn', 'api-proxy-modal', 'close-proxy-modal', renderProxyList);
             setupModal('manage-characters-btn', 'ai-character-modal', 'close-character-modal', renderCharacterList);
@@ -1725,9 +1859,50 @@
             ELS.ledgerList.addEventListener('click', (e) => {
                 const item = e.target.closest('.ledger-item');
                 if (item && item.dataset.id) {
-                    showTransactionPanel(parseInt(item.dataset.id));
+                    showLedgerDetail(parseInt(item.dataset.id));
                 }
             });
+            
+            function showLedgerDetail(id) {
+                const t = state.transactions.find(t => t.id === id);
+                if (!t) return;
+                
+                const category = CATEGORIES[t.type].find(c => c.id === t.category);
+                
+                document.getElementById('ledger-detail-type').textContent = t.type === 'expense' ? '支出' : '收入';
+                document.getElementById('ledger-detail-category').textContent = `${category?.icon || '🤔'} ${category?.name || '未知'}`;
+                document.getElementById('ledger-detail-amount').textContent = `${t.amount.toFixed(2)} ${t.currency}`;
+                document.getElementById('ledger-detail-remark').textContent = t.remark || '无备注';
+                document.getElementById('ledger-detail-time').textContent = new Date(t.timestamp).toLocaleString();
+                
+                const modal = document.getElementById('ledger-detail-modal');
+                
+                document.getElementById('edit-ledger-btn').onclick = () => {
+                    modal.classList.remove('visible');
+                    showTransactionPanel(id);
+                };
+                
+                document.getElementById('delete-ledger-btn').onclick = async () => {
+                    if (confirm('确定要删除这条记账及其聊天记录吗？')) {
+                        const msg = state.messages.find(m => m.relatedId === id && m.type === 'transaction');
+                        await db.transactions.delete(id);
+                        state.transactions = state.transactions.filter(t => t.id !== id);
+                        if(msg) {
+                            await db.messages.delete(msg.id);
+                            state.messages = state.messages.filter(m => m.id !== msg.id);
+                        }
+                        modal.classList.remove('visible');
+                        renderLedger();
+                        renderChatMessages(false, true);
+                    }
+                };
+                
+                document.getElementById('close-ledger-detail-modal').onclick = () => {
+                    modal.classList.remove('visible');
+                };
+                
+                modal.classList.add('visible');
+            }
 
             // NEW: Schedule page swipe listeners
             const scheduleSwipeContainer = document.querySelector('.schedule-swipe-container');
@@ -2055,6 +2230,10 @@
                 contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">🗓️</div><div class="type-name">我的日程</div></div><div class="summary-body"><div class="text">已将最新日程信息同步给AI</div></div></div>`;
             } else if (msg.type === 'pie_chart_summary') {
                 contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">📊</div><div class="type-name">账本图表</div></div><div class="summary-body"><div class="text">已将图表分析同步给AI</div></div></div>`;
+            } else if (msg.type === 'today_tasks_summary') {
+                contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">📅</div><div class="type-name">今日待办</div></div><div class="summary-body"><div class="text">已将今日待办同步给AI</div></div></div>`;
+            } else if (msg.type === 'calendar_view_summary') {
+                contentContainer.innerHTML = `<div class="summary-card"><div class="summary-header"><div class="icon">📆</div><div class="type-name">日历视图</div></div><div class="summary-body"><div class="text">已将本月日程同步给AI</div></div></div>`;
             } else { 
                 const contentSpan = document.createElement('span');
                 contentSpan.className = 'content-text';
@@ -2085,22 +2264,42 @@
             return wrapper;
         }
 
-        function renderChatMessages(shouldScrollToBottom = true) {
+        function renderChatMessages(shouldScrollToBottom = true, resetDisplay = false) {
+            if (resetDisplay) {
+                state.messagesDisplayed = 50;
+            }
+            
             const lastScrollTop = ELS.chatMessages.scrollTop;
             const lastScrollHeight = ELS.chatMessages.scrollHeight;
             const isScrolledToBottom = lastScrollHeight - lastScrollTop - ELS.chatMessages.clientHeight < 1;
-
+        
+            const messagesToShow = state.messages.slice(-state.messagesDisplayed);
+            const hasMore = state.messagesDisplayed < state.messages.length;
+            
             ELS.chatMessages.innerHTML = '';
-            state.messages.forEach(msg => {
+            
+            // 添加加载更多提示
+            if (hasMore) {
+                const loadMoreDiv = document.createElement('div');
+                loadMoreDiv.className = 'load-more-indicator';
+                loadMoreDiv.style.cssText = 'text-align: center; padding: 20px; color: var(--text-secondary); font-size: 14px;';
+                loadMoreDiv.textContent = '向上滚动加载更多...';
+                ELS.chatMessages.appendChild(loadMoreDiv);
+            }
+            
+            messagesToShow.forEach(msg => {
                 if (!msg.id.toString().startsWith('thinking-')) {
                     ELS.chatMessages.appendChild(createMessageElement(msg));
                 }
             });
-
+        
             if (shouldScrollToBottom || isScrolledToBottom) {
                 ELS.chatMessages.scrollTop = ELS.chatMessages.scrollHeight;
-            } else {
-                ELS.chatMessages.scrollTop = lastScrollTop;
+            } else if (!resetDisplay) {
+                // 保持相对位置
+                const newScrollHeight = ELS.chatMessages.scrollHeight;
+                const scrollDiff = newScrollHeight - lastScrollHeight;
+                ELS.chatMessages.scrollTop = lastScrollTop + scrollDiff;
             }
         }
         
@@ -3436,52 +3635,68 @@
                 const totalExpense = Object.values(expenseData).reduce((s, a) => s + a, 0);
                 const totalIncome = Object.values(incomeData).reduce((s, a) => s + a, 0);
                 
-                let summaryText = `${generatePieChartSubtitle()}的账单总结：\n`;
-                let hasData = false;
-                if (totalExpense > 0) {
-                    hasData = true;
-                    summaryText += `总支出为 ${totalExpense.toFixed(2)} ${displayCurrency}。其中：\n`;
-                    summaryText += Object.entries(expenseData).map(([catId, amount]) => {
-                        const cat = CATEGORIES.expense.find(c => c.id === catId);
-                        const percentage = (amount / totalExpense * 100).toFixed(1);
-                        return `- ${cat.name} 支出 ${amount.toFixed(2)} 元，占比 ${percentage}%`;
-                    }).join('\n');
-                }
-                if (totalIncome > 0) {
-                    hasData = true;
-                    if (totalExpense > 0) summaryText += '\n\n';
-                    summaryText += `总收入为 ${totalIncome.toFixed(2)} ${displayCurrency}。其中：\n`;
-                    summaryText += Object.entries(incomeData).map(([catId, amount]) => {
-                        const cat = CATEGORIES.income.find(c => c.id === catId);
-                        const percentage = (amount / totalIncome * 100).toFixed(1);
-                        return `- ${cat.name} 收入 ${amount.toFixed(2)} 元，占比 ${percentage}%`;
-                    }).join('\n');
-                }
+                const summaryData = {
+                    title: `${generatePieChartSubtitle()}的账单总结`,
+                    totalExpense,
+                    totalIncome,
+                    expenseDetails: Object.entries(expenseData).map(([catId, amount]) => ({
+                        id: catId,
+                        name: CATEGORIES.expense.find(c => c.id === catId)?.name || '未知',
+                        amount,
+                        percentage: totalExpense > 0 ? (amount / totalExpense * 100) : 0
+                    })),
+                    incomeDetails: Object.entries(incomeData).map(([catId, amount]) => ({
+                        id: catId,
+                        name: CATEGORIES.income.find(c => c.id === catId)?.name || '未知',
+                        amount,
+                        percentage: totalIncome > 0 ? (amount / totalIncome * 100) : 0
+                    })),
+                    currency: displayCurrency
+                };
 
-                if (!hasData) { alert('当前筛选条件下没有数据可同步'); return; }
+                if (totalExpense === 0 && totalIncome === 0) { alert('当前筛选条件下没有数据可同步'); return; }
                 if (!confirm('要将当前图表分析同步到聊天中吗？')) return;
                 
-                const newMsg = { timestamp: Date.now(), role: 'user', content: summaryText, type: 'pie_chart_summary' };
+                const newMsg = { timestamp: Date.now(), role: 'user', content: JSON.stringify(summaryData), type: 'pie_chart_summary' };
                 const id = await db.messages.add(newMsg);
                 state.messages.push({ ...newMsg, id });
             } else {
                 // Sync list data
                 if (filtered.length === 0) { alert('当前筛选条件下没有数据可同步'); return; }
                 if (!confirm('要将当前筛选的账本列表同步到聊天中吗？')) return;
-                const newMsg = { timestamp: Date.now(), role: 'user', content: '', type: 'ledger_summary' };
+                
+                const summaryData = filtered.map(t => ({
+                    type: t.type,
+                    amount: t.amount,
+                    currency: t.currency,
+                    category: CATEGORIES[t.type].find(c => c.id === t.category)?.name || '未知',
+                    remark: t.remark
+                }));
+
+                const newMsg = { timestamp: Date.now(), role: 'user', content: JSON.stringify(summaryData), type: 'ledger_summary' };
                 const id = await db.messages.add(newMsg);
                 state.messages.push({ ...newMsg, id });
             }
             navigateTo('accounting-screen');
-            renderChatMessages();
+            renderChatMessages(true, true);
         }
         async function forwardScheduleToChat() {
             if (!confirm('要将完整的日程信息同步到聊天中吗？')) return;
-            const newMsg = { timestamp: Date.now(), role: 'user', content: '', type: 'schedule_summary' };
+            
+            const summaryData = state.schedules.map(s => ({
+                title: s.title,
+                eventType: s.eventType,
+                importance: s.importance,
+                deadline: s.deadline ? formatDeadline(s.deadline) : '无',
+                description: s.description,
+                completed: s.completed
+            }));
+
+            const newMsg = { timestamp: Date.now(), role: 'user', content: JSON.stringify(summaryData), type: 'schedule_summary' };
             const id = await db.messages.add(newMsg);
             state.messages.push({ ...newMsg, id });
             navigateTo('accounting-screen');
-            renderChatMessages();
+            renderChatMessages(true, true);
         }
         
         // --- Ledger Filter Modals ---
@@ -3663,11 +3878,55 @@
                 } else if (msg.type === 'image') {
                     text = '[图片]';
                 } else if (msg.type === 'ledger_summary') {
-                    text = '[账本摘要同步]';
+                    if (!msg.content) {
+                        text = '[账本摘要同步]';
+                    } else {
+                        try {
+                            const data = JSON.parse(msg.content);
+                            text = `[账本摘要同步] 共${data.length}条记录\n`;
+                            text += data.map(t => `  - ${t.type === 'expense' ? '支出' : '收入'} ${t.amount}${t.currency} (${t.category}): ${t.remark || '无'}`).join('\n');
+                        } catch (e) {
+                            text = '[账本摘要同步] (数据格式错误)';
+                        }
+                    }
                 } else if (msg.type === 'schedule_summary') {
-                    text = '[日程摘要同步]';
+                    if (!msg.content) {
+                        text = '[日程摘要同步]';
+                    } else {
+                        try {
+                            const data = JSON.parse(msg.content);
+                            text = `[日程摘要同步] 共${data.length}个日程\n`;
+                            text += data.map(s => `  - [${s.eventType}] ${s.title} (重要度: ${s.importance})`).join('\n');
+                        } catch (e) {
+                            text = '[日程摘要同步] (数据格式错误)';
+                        }
+                    }
                 } else if (msg.type === 'pie_chart_summary') {
-                    text = '[图表分析同步]';
+                    if (!msg.content) {
+                        text = '[图表分析同步]';
+                    } else {
+                        try {
+                            const data = JSON.parse(msg.content);
+                            text = `[图表分析同步] ${data.title}\n`;
+                            if (data.totalExpense > 0) {
+                                text += `  总支出: ${data.totalExpense.toFixed(2)} ${data.currency}\n`;
+                                text += data.expenseDetails.map(d => `    - ${d.name}: ${d.amount.toFixed(2)} (${d.percentage.toFixed(1)}%)`).join('\n');
+                            }
+                            if (data.totalIncome > 0) {
+                                text += `\n  总收入: ${data.totalIncome.toFixed(2)} ${data.currency}\n`;
+                                text += data.incomeDetails.map(d => `    - ${d.name}: ${d.amount.toFixed(2)} (${d.percentage.toFixed(1)}%)`).join('\n');
+                            }
+                        } catch (e) {
+                            text = `[图表分析同步] (数据格式错误)`;
+                        }
+                    }
+                } else if (msg.type === 'today_tasks_summary') {
+                    const data = JSON.parse(msg.content);
+                    text = `[今日待办同步] 待完成${data.pending.length}项，已完成${data.completed.length}项`;
+                } else if (msg.type === 'calendar_view_summary') {
+                    const data = JSON.parse(msg.content);
+                    const totalEvents = Object.values(data.events).flat().length;
+                    text = `[日历视图同步] ${data.year}年${data.month}月共${totalEvents}个日程事项`;
                 }
                 
                 let sender = msg.role === 'user' ? '我' : 'AI';
